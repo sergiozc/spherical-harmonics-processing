@@ -23,6 +23,14 @@ y = load('input/y_recorded.mat').y;
 maxmax=max(max(abs(y)));
 y=y/maxmax;
 
+% Source
+fs = 11025;
+[source1, fs] = audioread('input/source1.wav');
+source1 = source1(1:92708);
+% Normalization
+maxmax = max(max(abs(source1)));
+source1 = source1/maxmax;
+
 % DOA calculation
 positions = load('input/positions.mat').pos;
 pos_sensor_cent = positions(ncent, :);
@@ -44,7 +52,7 @@ N = nsensors;       % Número de sensores
 phi = DOA;         % Ángulo de llegada del target (DOA)
 L_signal = length(y(:,ncent));   %Longitud total de la señal
 win = hanning(Ltrama+1,'periodic'); % Ventana de hanning  
-freq = linspace(0,256,257)*(Fs/Lfft); % de 0 a 8000 Hz
+freq = linspace(0,256,257)*(Fs/Lfft); % Vector de frecuencias
 n=0:1:N-1; % Índice de los elementos del array
 c = 340; % Velocidad de propagación
 
@@ -66,7 +74,7 @@ xlabel('Time (s)');
 
 % CÁLCULO DE PESOS
 % Pesos DAS
-w = DAS_weights(d_n,tn, freq); fprintf('Beamformer: DAS \n');
+w = DAS_weights(d_n, tn, freq); fprintf('Beamformer: DAS \n');
 
 % SEÑAL DIVISIBLE ENTRE Ltrama 
 [m,~] = size(y);
@@ -109,7 +117,7 @@ end
 %Unimos todos los canales
 xc_out_sum = sum(xc_out, 2);
 % Eliminamos la cola residual de la ultima trama
-xc_out_sum=xc_out_sum(1:end-Lfft/2);
+xc_out_sum = xc_out_sum(1:end-Lfft/2);
 % Normalizamos la señal y la escuchamos
 xout_norm = xc_out_sum/max(abs(xc_out_sum));
 soundsc(real(xout_norm),Fs);
@@ -129,19 +137,23 @@ title('Time representation after beamforming')
 %Se puede comprobar como el ruido se ha minimizado
 
 
-%% CAMBIAR EVALUACIÓN DE SNR !!!! (debe ser en función de la source)
+%% SALE LA POTENCIA DEL RUIDO NEGATIVA!!! REVISAR
 %% Cálculo SNR
-%Para realizar el cálculo de la SNR, calculamos la potencia de la señal
-%y del ruido (primeras 8000 muestras) y obtenemos el ratio.
+
+% Calcular la potencia de la señal deseada
+power_source = var(source1);
+% Calcular la potencia de la señal de entrada
+power_input = var(y(:, 1));
+% Calcular la potencia de la señal de salida del beamformer
+power_output = var(xout_norm);
+% Calcular la diferencia entre la potencia de la señal deseada y la de
+% entarda
+power_noise = max(power_input - power_output, 0);
 
 % SNR ANTES DEL BEAMFORMING
-ruido_orig = var((y(1:8000, 1))); %Interferencia aislada en las 3000 primeras muestras
-pot_orig = var((y(8000:end, 1)));
-SNR_orig = SNR_calc(pot_orig, ruido_orig);
+SNR_orig = SNR_calc(power_input, power_noise);
 fprintf('SNR(before)  = %f dB\n', SNR_orig);
 
 % SNR DESPUÉS DEL BEAMFORMING
-ruido_BF = var(real(xout_norm(1:8000)));
-pot_BF = var(real(xout_norm(8000:end)));
-SNR_BF = SNR_calc(pot_BF, ruido_BF);
+SNR_BF = SNR_calc(power_output, power_noise);
 fprintf('SNR(after)  = %f dB\n', SNR_BF);
