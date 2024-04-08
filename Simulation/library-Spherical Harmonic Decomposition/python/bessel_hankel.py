@@ -11,8 +11,6 @@ BESSEL AND HANKEL FUNCTIONS
 
 import numpy as np
 from scipy.special import jv, yv
-from scipy.special import spherical_jn
-from math import pi
 
 class BHfunctions:
     

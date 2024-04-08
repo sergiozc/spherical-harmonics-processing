@@ -54,13 +54,4 @@ y3 = SHutils.complexSH(order, el, az)
 n_arr = SHutils.ACNOrderArray(order)
 
 # Alpha (sound field coefficients) for all modes and time frames
-alpha = SHutils.alphaOmni(P, order, k, r, el, az, 'True', 'inv', 'False', 'False', 1)
-
-# Definir los valores de n y x para la prueba
-n_values = [0, 1, 2]
-x_values = [0.5, 1.0, 1.5]
-
-# Evaluar la función dsph_besselj para cada combinación de n y x
-for n in n_values:
-    for x in x_values:
-        result = SHutils.sph_bn(n, x)
+alpha = SHutils.alphaOmni(P, 3, k, r, el, az, True, 'inv', False, False, 1)

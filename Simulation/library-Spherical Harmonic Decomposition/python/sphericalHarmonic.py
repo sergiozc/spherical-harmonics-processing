@@ -13,6 +13,8 @@ import numpy as np
 from scipy.special import lpmv, factorial
 from math import pi
 from bessel_hankel import BHfunctions
+import math
+from scipy.linalg import pinv
 
 class SHutils:
     
@@ -177,45 +179,6 @@ class SHutils:
         return y
     
     
-    
-    @staticmethod 
-    def ACNOrderArray(order):
-        """
-        Get all SH orders in an array according to ACN (Ambisonics Channel Numbering)
-
-        Parameters:
-            order (int): Maximum order of the spherical harmonics.
-
-        Returns:
-            n_array (numnpy.ndarray): Int array containing all SH orders according to ACN.
-        """
-        
-        n_arr = np.zeros((order + 1) ** 2, dtype=int)
-        ind = 1
-        for n in range(1, order + 1):
-            num_modes = 2 * n
-            n_arr[ind:ind + num_modes + 1] = n
-            ind += num_modes + 1
-        return n_arr
-    
-    @staticmethod 
-    def betaFunction():
-        """
-        Get all SH orders in an array according to ACN (Ambisonics Channel Numbering)
-
-        Parameters:
-            order (int): Maximum order of the spherical harmonics.
-
-        Returns:
-            n_array (numnpy.ndarray): Int array containing all SH orders according to ACN.
-        """
-        
-        
-        beta = "Not ready yet"
-
-        return beta
-    
-    
     @staticmethod 
     def ACNOrderArray(order):
         """
@@ -273,17 +236,44 @@ class SHutils:
     
         return bn
     
+    @staticmethod
+    def pinvRegularized(A, b, weight=0.01):
+        """
+        Solves Ax = b for x with regularization.
+    
+        Parameters:
+            A (numpy.ndarray): Matrix A of shape (M, N).
+            b (numpy.ndarray): Vector b of shape (M, K).
+            weight (float, optional): Regularization weight. Default is 0.01.
+    
+        Returns:
+            numpy.ndarray: Solution vector x of shape (N, K).
+        """
+        # Regularization weight
+        w = weight * np.eye(A.shape[1])
+    
+        # Augmented matrix
+        A_aug = np.vstack([A, w])
+    
+        # Augmented vector
+        b_aug = np.pad(b, ((0, w.shape[0]), (0, 0)), mode='constant', constant_values=0)
+    
+        # Calculate pseudoinverse and solve
+        x = pinv(A_aug) @ b_aug
+    
+        return x
+    
     
     
     
     @staticmethod 
     def alphaOmni(P, order, k, r, el, az, isRigid, mode, compensateBesselZero, applyRegularization, weight):
         """
-        (checked)
+        (checked. The result is not exactly the same due to so many decimals)
         Calculate complex spherical harmonics upto an order.
         
         Dependencies:
-            complexSH
+            BHfunctions
         Parameters:
             P (Q x timeFrames matrix): Sound pressure
             order (int): Highest SH order to calculate
@@ -300,11 +290,30 @@ class SHutils:
         Returns:
             % alpha: Sound field coefficients, (N+1)^2 x T
         """
-        alpha = 'Not ready yet'
+        
+        # kr product
+        kr = k * r
+        # True order of the sound field
+        N_true = max(order, math.ceil(kr.max()))
+        # SH orders
+        n_arr = SHutils.ACNOrderArray(N_true)
+        # Beta
+        bn = SHutils.sph_bn(n_arr, kr, isRigid);
+        
+        if mode == 'inv':
+            Y_mat = SHutils.complexSH(N_true, el, az) * bn
+            
+            if applyRegularization:
+                # Apply regularization if necessary
+                alpha = SHutils.pinvRegularized(Y_mat.T @ P)
+            else:
+                alpha = pinv(Y_mat.T) @ P
+            
+            if order < N_true:
+                alpha = alpha[:((order + 1) ** 2), :]
+
+        if (max(np.ceil(kr)) + 1) ** 2 > len(az):
+            print('(N + 1)^2 > Q, spatial alising might occur.')
     
         return alpha 
     
-                
-            
-        
-
