@@ -2,13 +2,12 @@
 """
 Created on Sun Mar 24 18:22:30 2024
 
-@author: Usuario
+@author: sergiozc
+@references: Fahim, Abdullah, et al. “PSD Estimation and Source Separation in a Noisy Reverberant Environment Using a Spherical Microphone Array.” IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 26, no. 9, Institute of Electrical and Electronics Engineers (IEEE), Sept. 2018, pp. 1594–607, doi:10.1109/taslp.2018.2835723.
 """
 
 from sphericalHarmonic import SHutils
 import numpy as np
-from bessel_hankel import BHfunctions
-from scipy.special import spherical_jn
 
 # %% PARAMETER DEFINITION (valores de prueba)
 Q = 32  # Number of microphones
@@ -39,8 +38,7 @@ P = np.ones((32, 500)) + 1j * np.zeros((32, 500))
 
 
 #%%
-# Wavenumber calculation
-k = SHutils.getK(freq, c)
+# SH calculations (just to test if necessary)
 
 # Real spherical harmonics for n = 3 and m = 2. For all elevations and azimuths.
 y2 = SHutils.realSHPerMode(3, 2, el, az)  # [Q x 1] output vector
@@ -53,5 +51,36 @@ y3 = SHutils.complexSH(order, el, az)
 # Get all SH orders in an array according to ACN (Ambisonics Channel Numbering)
 n_arr = SHutils.ACNOrderArray(order)
 
-# Alpha (sound field coefficients) for all modes and time frames
-alpha = SHutils.alphaOmni(P, 3, k, r, el, az, True, 'inv', False, False, 1)
+
+# %%
+# ALPHA (sound field coefficients) for all modes and time frames
+
+# Wavenumber calculation
+k = SHutils.getK(freq, c)
+
+# Mode: no-inv is the same as Ec(12) within “PSD Estimation and Source Separation in a Noisy Reverberant Environment Using a Spherical Microphone Array.” 
+#mode = 'inv'
+mode = 'no-inv'
+
+# Weights to the corresponding microphones
+#(used if mode ~= inv)
+#weight = np.random.rand(32) + 0.01
+#weight = np.array([0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3, 0.5, 0.3, 0.3, 0.3, 0.5, 0.3, 0.3, 0.3, 0.5, 0.6, 0.7, 0.7, 0.7, 0.6, 0.7, 0.7, 0.7])
+weights = np.ones(Q)
+
+# Highest SH order to calculate.
+# # It defines the complexity of the spherical function
+order = 3
+
+# Rigid array or not
+isRigid = True
+
+# To compensate bessel 0 issue or not
+#(used if mode != inv)
+compensateBesselZero = True
+
+# To apply regularization or not
+# (used if mode == inv)
+applyRegularization = False
+
+alpha = SHutils.alphaOmni(P, order, k, r, el, az, isRigid, mode, compensateBesselZero, False, weights)

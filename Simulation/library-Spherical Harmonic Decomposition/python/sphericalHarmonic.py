@@ -311,6 +311,22 @@ class SHutils:
             
             if order < N_true:
                 alpha = alpha[:((order + 1) ** 2), :]
+        else:
+            #  It is enough to use N for mode-matching case
+            bn = bn[:((order+1)**2), :]
+            
+            # Fixed flooring on bn
+            if compensateBesselZero:
+                bn = np.maximum(np.abs(bn), 0.05) * np.exp(1j * np.angle(bn))
+            
+            # NN x Q
+            Y_mat = np.conj(SHutils.complexSH(order, el, az)) / bn
+            
+            if weight is not None and not np.all(weight == 1) and not np.all(weight is None):
+                weight = weight.T
+                Y_mat = Y_mat * weight
+            
+            alpha = Y_mat @ P
 
         if (max(np.ceil(kr)) + 1) ** 2 > len(az):
             print('(N + 1)^2 > Q, spatial alising might occur.')
