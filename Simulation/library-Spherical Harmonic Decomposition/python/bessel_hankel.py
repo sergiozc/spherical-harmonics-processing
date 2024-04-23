@@ -3,7 +3,6 @@
 Created on Mon Apr  1 20:07:02 2024
 
 @author: sergiozc
-
 @references: Fahim, Abdullah, et al. “PSD Estimation and Source Separation in a Noisy Reverberant Environment Using a Spherical Microphone Array.” IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 26, no. 9, Institute of Electrical and Electronics Engineers (IEEE), Sept. 2018, pp. 1594–607, doi:10.1109/taslp.2018.2835723.
 
 BESSEL AND HANKEL FUNCTIONS
@@ -30,7 +29,7 @@ class BHfunctions:
         # Encontrar ceros en el argumento
         idx_zero = (x == 0)
     
-        # Evaluar la función Bessel de primera especie
+        # Evaluar la función Bessel de primer tipo
         j = np.sqrt(np.pi / (2 * x)) * jv(n + 0.5, x)
     
         # Manejar casos especiales cuando x es cero

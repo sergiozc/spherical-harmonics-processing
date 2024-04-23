@@ -2,6 +2,8 @@ clear all;
 close all;
 clc;
 
+addpath(genpath('stft_library'))
+
 %% Sources definition
 % FIRST SOURCE
 [s1,fs] = audioread('sources/every_man_De_Niro.wav');
@@ -68,6 +70,22 @@ H1 = roomsimove_single('room_sensor_config.txt',[x1; y1; z1]);
 H2 = roomsimove_single('room_sensor_config.txt',[x2; y2; z2]);
 y = fftfilt(H1,s1) + fftfilt(H2,s2);
 
+%% Sound pressure
+winlen = uint32(256); % it means 256 samples. 
+% winlen = 256; % It means 256 ms
+hop = 0.25;  % 75% overlap. Default is 50%, or 0.5
+nfft = 512; % Default is same length as winlen
+
+% Transformada de fourier para cada ventan
+stftObj = STFTClass(fs, winlen, hop, nfft);
+
+% Perform the STFT on y
+T = 500; % Number of time frames
+
+% Sound pressure for each microphone
+P1 = stftObj.stft(y(:, 1), T);
+P2 = stftObj.stft(y(:, 2), T);
+P3 = stftObj.stft(y(:, 3), T);
 %% Saving data
 save('../Beamformer/input/y_recorded.mat', 'y');
 % Posiciones x, y, z de los sensores y de las fuentes 

@@ -3,7 +3,6 @@
 Created on Sun Mar 24 18:01:42 2024
 
 @author: sergiozc
-
 @references: Fahim, Abdullah, et al. “PSD Estimation and Source Separation in a Noisy Reverberant Environment Using a Spherical Microphone Array.” IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 26, no. 9, Institute of Electrical and Electronics Engineers (IEEE), Sept. 2018, pp. 1594–607, doi:10.1109/taslp.2018.2835723.
 
 SPHERICAL HARMONIC DECOMPOSITION
@@ -123,7 +122,9 @@ class SHutils:
     def complexSH(order, el, az):
         """
         (checked)
-        Calculate complex spherical harmonics upto an order.
+        Calculate complex spherical harmonics upto an order 
+        (first row --> n = 0, m = 0 ; last row --> n = order, m = order)
+        
     
         Parameters:
             order (int): Highest SH order to calculate
@@ -131,7 +132,7 @@ class SHutils:
             az (numpy.ndarray): Vector of azimuth angles in radians (Qx1).
     
         Returns:
-            numpy.ndarray: Complex spherical harmonics values for the specified mode (Qx1).
+            numpy.ndarray: Complex spherical harmonics values (order+1)^2 x Q
         """
         # Check the number of elements of el and az (must be the same)
         if el.size != az.size:
@@ -202,7 +203,7 @@ class SHutils:
     @staticmethod
     def sph_bn(n_arr, x_arr, is_rigid=False):
         """
-        Calculate the coefficients bn for spherical harmonics.
+        Calculate the coefficients bn for spherical harmonics. Eq (11) from the paper.
     
         Parameters:
             n_arr (numpy.ndarray): Array of orders.
@@ -227,7 +228,8 @@ class SHutils:
             n_arr = np.tile(n_arr, (1, K))
             
         temp = 0
-    
+        
+        # Eq (11) from the paper
         if is_rigid:
             temp = BHfunctions.dsph_besselj(n_arr, x_arr) * BHfunctions.sph_hankel1(n_arr, x_arr) / BHfunctions.dsph_hankel1(n_arr, x_arr)
             temp[np.isnan(temp)] = 0
@@ -271,6 +273,7 @@ class SHutils:
         """
         (checked. The result is not exactly the same due to so many decimals)
         Calculate complex spherical harmonics upto an order.
+        (first row --> n = 0, m = 0 ; last row --> n = order, m = order)
         
         Dependencies:
             BHfunctions
@@ -288,13 +291,18 @@ class SHutils:
             weight(numpy.ndarray): Array Weight (used if mode ~= inv)
     
         Returns:
-            % alpha: Sound field coefficients, (N+1)^2 x T
+            % alpha: Sound field coefficients, (N+1)^2 x T (where variable T represents timeframes)
         """
         
         # kr product
         kr = k * r
+        
         # True order of the sound field
-        N_true = max(order, math.ceil(kr.max()))
+        if isinstance(kr, np.ndarray): # Checking if it is an array
+            N_true = max(order, math.ceil(kr.max()))
+        else:
+            N_true = max(order, math.ceil(kr))
+        
         # SH orders
         n_arr = SHutils.ACNOrderArray(N_true)
         # Beta
@@ -327,9 +335,14 @@ class SHutils:
                 Y_mat = Y_mat * weight
             
             alpha = Y_mat @ P
+            
+        if isinstance(kr, np.ndarray): # Checking if it is an array
+            if (max(np.ceil(kr)) + 1) ** 2 > len(az):
+                print('(N + 1)^2 > Q, spatial alising might occur.')
+        else:
+            if (np.ceil(kr) + 1) ** 2 > len(az):
+                print('(N + 1)^2 > Q, spatial alising might occur.')
 
-        if (max(np.ceil(kr)) + 1) ** 2 > len(az):
-            print('(N + 1)^2 > Q, spatial alising might occur.')
     
         return alpha 
     
