@@ -15,12 +15,15 @@ from scipy.io import loadmat
 # PARAMETER DEFINITION (valores de prueba)
 
 Q = 32  # Number of microphones
+r = 0.042 # Assuming same radius
 freq_array = loadmat('data/freq.mat')['freq_array'] 
 freq_array[0] = 0.1 # To avoid dividing by zero
 c = 343 # Propagation speed
 k_array = SHutils.getK(freq_array, c) # Wavenumber array
+Nfreq = len(k_array) # Number of frequencies
 
-freq = 1000 # Frequency
+freq = 882.861 # Frequency (unit test)
+k = SHutils.getK(freq, c)
 
 order = 4 # Spherical harmonic order (it defines the complexity of the spherical function).
 # Defined in the "experimental setup" of the paper. Highest order to calculate.
@@ -73,8 +76,6 @@ n_arr = SHutils.ACNOrderArray(order)
 # %%
 # ALPHA (sound field coefficients) for all modes and time frames (2nd step of the algorithm)
 
-# Wavenumber calculation
-k = SHutils.getK(freq, c)
 # Mode: no-inv is the same as Ec(12) within “PSD Estimation and Source Separation in a Noisy Reverberant Environment Using a Spherical Microphone Array.” 
 #mode = 'inv'
 mode = 'no-inv'
@@ -93,34 +94,34 @@ compensateBesselZero = True
 # (used if mode == inv)
 applyRegularization = False
 
-# BUCLE EN FRECUENCIA
-alpha = SHutils.alphaOmni(P, order, k, r, el, az, isRigid, mode, compensateBesselZero, applyRegularization, weights)
-
+# Alpha as a tensor (depends on frequency)
+alpha = np.zeros((Nfreq, (order+1)**2, timeFrames), dtype=complex)
+# Frequency loop
+for k_index, k in enumerate(k_array):
+    alpha[k_index, :, :] = SHutils.alphaOmni(P, order, k, r, el, az, isRigid, mode, compensateBesselZero, applyRegularization, weights)
+    
 #%% 
 # UPSILON, PSI, OMEGA calculation (3rd step of the algorithm)
 
-# Assuming same radius
-r = 0.042
-
-ups = PSDestimation.upsilon_term(0, 0, 0, 0, el_s, az_s)
-psi = PSDestimation.psi_term(0, 0, 0, 0, 2, 1)
-omega = PSDestimation.omega_term(0, 0, 0, 0, k, r)
+#ups = PSDestimation.upsilon_term(0, 0, 0, 0, el_s, az_s)
+#psi = PSDestimation.psi_term(0, 0, 0, 0, 2, 1)
+#omega = PSDestimation.omega_term(0, 0, 0, 0, k, r)
 
 #%%
 # PSDs MATRIX CALCULATION
 
 N = 4 # order
-# Translation matrix (T)
-T_matrix = PSDestimation.translation_matrix(el_s, az_s, k, r, N, V, L)
+# Translation matrix (T) (tensor 3D)
+T_matrix = PSDestimation.translation_matrix(el_s, az_s, k_array, r, N, V, L)
 
-# Lambda matrix
+# Lambda matrix (tensor 3D)
 beta = 0.8 # Smoothing factor
-lambda_matrix_t  = PSDestimation.lambda_matrix(k, N, beta, alpha, timeFrames)
+lambda_matrix_t  = PSDestimation.lambda_matrix(k_array, N, beta, alpha, timeFrames)
 
 # PSD matrix (per time frames)
-theta_psd = np.zeros(((L + (V + 1)**2 + 1), timeFrames), dtype=complex)
-for i in range (timeFrames):
-    theta_psd[:, i] = PSDestimation.psd_matrix(T_matrix, lambda_matrix_t[:, i])
+#theta_psd = np.zeros(((L + (V + 1)**2 + 1), timeFrames), dtype=complex)
+#for i in range (timeFrames):
+    #theta_psd[:, i] = PSDestimation.psd_matrix(T_matrix, lambda_matrix_t[:, i])
 
 
 

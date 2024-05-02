@@ -137,14 +137,14 @@ class PSDestimation:
         return omega
     
     @staticmethod
-    def translation_matrix(el_s, az_s, k, r, N, V, L):
+    def translation_matrix(el_s, az_s, k_array, r, N, V, L):
         """
         Fills the translation matrix with the corresponding terms. See Eq (47) from the paper.
     
         Parameters:
             el_s (numpy.ndarray): Vector of sources elevation angles in radians (Lx1).
             az_s (numpy.ndarray): Vector of sources azimuth angles in radians (Lx1).
-            k (float): Wavenumber
+            k_array (numpy.ndarray): Wavenumber array. len(k_array) = Nfreq
             r (numpy.ndarray) Vector of array radius
             N (int): Maximun SH order
             V (int): Maximum reverberation power order
@@ -152,16 +152,19 @@ class PSDestimation:
 
     
         Returns:
-            numpy.ndarray: [(N + 1)^4 x (L + (V+1)^2 + 1)]
+            numpy.tensor: [Nfreq x (N + 1)^4 x (L + (V+1)^2 + 1)]
             
         """
         # Matrix initialization
         rows = (N + 1)**4
         columns = L + (V + 1)**2 + 1
-        T_matrix = np.zeros((rows, columns), dtype=complex)
+        Nfreq = len(k_array)
+        
+        # Defining T_matrix as a tensor
+        T_matrix = np.zeros((Nfreq, rows, columns), dtype=complex)
         
         ups = np.zeros((rows, L),  dtype=complex)
-        omega = np.zeros((rows, 1),  dtype=complex)
+        omega = np.zeros((rows, Nfreq),  dtype=complex)
         psi = np.zeros((rows, (V+1)**2), dtype=complex)
         
         i = 0
@@ -174,12 +177,7 @@ class PSDestimation:
                     # m' iteration
                     for m_p in range(-n_p, n_p+1):
                         upsilon = PSDestimation.upsilon_term(n, m, n_p, m_p, el_s, az_s)
-                        ups[i, :] = upsilon
-                        
-                        # BUCLE DE FRECUENCIA
-                        omega_term = PSDestimation.omega_term(n, m, n_p, m_p, k, r)
-                        omega[i, 0] = omega_term
-                        
+                        ups[i, :] = upsilon                                     
                         # v iteration
                         j = 0
                         for v in range(V+1):
@@ -188,22 +186,28 @@ class PSDestimation:
                                 psi_term = PSDestimation.psi_term(n, m, n_p, m_p, v, u)
                                 psi[i, j] = psi_term
                                 j += 1
-                            
+                        
+                        # Frequency loop
+                        for k_index, k in enumerate(k_array):
+                            omega_term = PSDestimation.omega_term(n, m, n_p, m_p, k, r)
+                            omega[i, k_index] = omega_term[0]
                         i += 1
         
-        # Final matrix (translation matrix)
-        T_matrix = np.concatenate((ups, psi, omega), axis=1)
+        # Filling the matrix
+        for k in range (Nfreq):
+            # Final matrix (translation matrix)
+            T_matrix[k, :, :] = np.concatenate((ups, psi, omega[:, k].reshape(-1, 1)), axis=1)
                 
         return T_matrix
     
     @staticmethod
-    def lambda_matrix(k, N, beta, alpha, timeFrames):
+    def lambda_matrix(k_array, N, beta, alpha, timeFrames):
         """
         Calculates the expected value of LAMBDA. See Eq (58) from the paper.
         An exponentially weighted moving average algorithm is used (EWMA).
     
         Parameters:
-            k (float): Wavenumber
+            k_array (numpy.ndarray): Wavenumber
             N (int): Highest SH order
             beta (float): Smoothing factor. In range [0,1].
             alpha (numpy.ndarray): Sound field coefficients, (N+1)^2 x T (where variable T represents timeframes)
@@ -214,8 +218,9 @@ class PSDestimation:
             
         """
         
+        Nfreq = len(k_array)
         # Column matrix
-        lambda_matrix = np.zeros(((N+1)**4, timeFrames), dtype=complex)
+        lambda_matrix = np.zeros((Nfreq, (N+1)**4, timeFrames), dtype=complex)
 
         
         i = 0 # Index to fill the final matrix (until (N+1)^4)
@@ -228,13 +233,15 @@ class PSDestimation:
                 for n_p in range(N+1):
                     # m' iteration
                     for m_p in range(-n_p, n_p+1):
-                        data = alpha[j_, :] * np.conj(alpha[j_p, :])
-                        lambda_matrix[i, :] = utils.ewma(beta, data)
+                        for k_index in range(Nfreq):
+                            data = alpha[k_index, j_, :] * np.conj(alpha[k_index, j_p, :])
+                            lambda_matrix[k_index, i, :] = utils.ewma_tensor(beta, data)
                         j_p += 1
                         i += 1
                 j_ += 1
         
         return lambda_matrix
+    
     
     @staticmethod
     def psd_matrix(T_matrix, lambda_matrix):

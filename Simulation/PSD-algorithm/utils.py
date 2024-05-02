@@ -53,6 +53,26 @@ class utils:
     
         return ewma_values
         
-        return el, az
+
+    @staticmethod 
+    def ewma_tensor(beta, data):
+        """
+        Calculates the Exponentially Weighted Moving Average (EWMA) for a 3-dimensional tensor.
+
+        Parameters:
+            beta (float): Smoothing factor.
+            data (numpy.ndarray): Input tensor.
+
+        Returns:
+            numpy.ndarray: Smoothed expected value EWMA.
+        """
+        ewma_values = np.zeros_like(data)
+
+        ewma_values[..., 0] = data[..., 0]
+
+        for tau in range(1, data.shape[-1]):
+            ewma_values[..., tau] = beta * ewma_values[..., tau - 1] + (1 - beta) * data[..., tau]
+
+        return ewma_values
         
         

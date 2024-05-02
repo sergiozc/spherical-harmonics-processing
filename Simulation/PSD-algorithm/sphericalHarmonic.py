@@ -24,15 +24,14 @@ class SHutils:
         Calculate wave number.
 
         Parameters:
-            freq (float): Frequency.
+            freq (float or numpy.array): Frequency.
             c (float, optional): Speed of sound. Defaults to 343 m/s.
 
         Returns:
-            float: Wave number.
+            float or nump: Wave number.
         """
         
-        lambd = c / freq
-        k = (2 * np.pi) / lambd
+        k = 2 * np.pi * freq / c
         
         return k
     
