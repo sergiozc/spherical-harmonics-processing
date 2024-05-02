@@ -86,12 +86,17 @@ T = 500; % Number of time frames
 P1 = stftObj.stft(y(:, 1), T);
 P2 = stftObj.stft(y(:, 2), T);
 P3 = stftObj.stft(y(:, 3), T);
+freq_array = stftObj.freqArray;
 %% Saving data
-save('../Beamformer/input/y_recorded.mat', 'y');
+%save('../Beamformer/input/y_recorded.mat', 'y');
 % Posiciones x, y, z de los sensores y de las fuentes 
 % COMPROBAR QUE SON LOS MISMOS DATOS QUE 'room_sensor_config.txt'
 pos = [2, 0.5, 1.4; 2, 1, 1.4; 2, 1.5, 1.4; x1, y1, z1; x2, y2, z2];
-save('../Beamformer/input/positions.mat', 'pos');
+%save('../Beamformer/input/positions.mat', 'pos');
+
+% Saving frequency array (to create a tensor in python)
+save('../PSD-algorithm/data/freq.mat', 'freq_array');
+
 
 %% Recorded signals
 
