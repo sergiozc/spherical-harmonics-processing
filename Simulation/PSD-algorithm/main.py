@@ -118,10 +118,8 @@ T_matrix = PSDestimation.translation_matrix(el_s, az_s, k_array, r, N, V, L)
 beta = 0.8 # Smoothing factor
 lambda_matrix_t  = PSDestimation.lambda_matrix(k_array, N, beta, alpha, timeFrames)
 
+# %%
 # PSD matrix (per time frames)
-#theta_psd = np.zeros(((L + (V + 1)**2 + 1), timeFrames), dtype=complex)
-#for i in range (timeFrames):
-    #theta_psd[:, i] = PSDestimation.psd_matrix(T_matrix, lambda_matrix_t[:, i])
-
-
-
+theta_psd = np.zeros((Nfreq, (L + (V + 1)**2 + 1), timeFrames), dtype=complex)
+for i in range (timeFrames):
+    theta_psd[:, :, i] = PSDestimation.psd_matrix(T_matrix, lambda_matrix_t[:, :, i])

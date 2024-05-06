@@ -285,7 +285,7 @@ class SHutils:
             az (numpy.ndarray): Vector of azimuth angles in radians (Qx1).
             isRigid (boolean): Array type (default 0)
             mode (list): inv/mm (pseudoinverse or mode matching)
-            compensateBesselZero: Compensate Bessel zero (uused if mode ~= inv), ref: https://ieeexplore.ieee.org/document/8357900
+            compensateBesselZero: Compensate Bessel zero (used if mode ~= inv), ref: https://ieeexplore.ieee.org/document/8357900
             applyRegularization: Apply regularization (used if mode == inv)
             weight(numpy.ndarray): Array Weight (used if mode ~= inv)
     

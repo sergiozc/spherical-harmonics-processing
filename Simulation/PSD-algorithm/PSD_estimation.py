@@ -250,21 +250,22 @@ class PSDestimation:
         See Eq (49) from the paper.
     
         Parameters:
-            T_matrix (numpy.ndarray): [(N + 1)^4 x (L + (V+1)^2 + 1)]
-            lambda_matrix (numpy.ndarray): [(N+1)^4 x 1]
+            T_matrix (numpy.ndarray): [Nfreq x (N + 1)^4 x (L + (V+1)^2 + 1)]
+            lambda_matrix (numpy.ndarray): [Nfreq x (N + 1)^4 x 1]
     
         Returns: 
-            numpy.ndarray:
-            
+            numpy.ndarray: [Nfreq x (L + (V + 1)**2 + 1)]
         """
-        # Transpose (Eq 46). Dimensions [(N+1)^4 x 1 x M] to perform the multiplication.
-        lambda_matrix = np.transpose(lambda_matrix)
-        
-        # Solving the system (Eq 45 --> Eq 49)
-        theta = pinv(T_matrix) @ lambda_matrix
-        
-
-        return theta
+        # Transpose lambda_matrix to match the dimensions for multiplication
+        lambda_matrix = np.expand_dims(lambda_matrix, axis=-1)
     
-
+        # Solve the system for each frequency
+        theta = np.linalg.pinv(T_matrix) @ lambda_matrix
+        
+        # Delete last dimension 
+        theta = theta[:, :, 0]
+        
+        
+     
+        return theta
     
