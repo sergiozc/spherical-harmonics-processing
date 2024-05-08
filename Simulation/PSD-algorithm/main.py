@@ -11,6 +11,7 @@ from PSD_estimation import PSDestimation
 from utils import utils
 import numpy as np
 from scipy.io import loadmat
+import matplotlib.pyplot as plt
 # %%
 # PARAMETER DEFINITION (valores de prueba)
 
@@ -123,3 +124,19 @@ lambda_matrix_t  = PSDestimation.lambda_matrix(k_array, N, beta, alpha, timeFram
 theta_psd = np.zeros((Nfreq, (L + (V + 1)**2 + 1), timeFrames), dtype=complex)
 for i in range (timeFrames):
     theta_psd[:, :, i] = PSDestimation.psd_matrix(T_matrix, lambda_matrix_t[:, :, i])
+
+# the first L elements of the theta_psd matrix (second dimension) represent the estimated source PSDs at the origin
+# the last element represents the estimated noise PSD at the origin. (second dimension)
+
+#%% PSD representation
+noise_psd = np.abs(theta_psd[:, -1, :]).T
+# Making the heatmap
+plt.figure()
+plt.imshow(noise_psd, aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
+plt.colorbar(label='PSD(dB/Hz)')
+plt.xlabel('Time frames')
+plt.ylabel('Frequency (Hz)')
+plt.title('Noise PSD heatmap')
+plt.show()
+
+
