@@ -27,14 +27,10 @@ for i, (x, y, z) in enumerate(pos_mic): # Switch to el and az (from cartesian)
 
 pos_sources = loadmat('data/pos_sources.mat')['pos_sources'] # Sources positions (x,y,z)
 L = pos_sources.shape[0]  # Number of sources (selecting rows' length)
-# Sources' configuration
-el_s = np.linspace(0, np.pi, L)  # Sources elevation [0, pi] (rad). 
-az_s = np.linspace(0, 2 * np.pi, L)  # # Microphones azimuth [0, pi] (rad). 
-
 el_s = np.zeros(L) # Sources elevation
 az_s = np.zeros(L) # Sources azimut
-for i, (x, y, z) in enumerate(pos_sources):# Switch to el and az (from cartesian)
-    el_s[i], az_s[i] = utils.cartesian2ElAz(x, y, z)
+for j, (x_s, y_s, z_s) in enumerate(pos_sources):# Switch to el and az (from cartesian)
+    el_s[j], az_s[j] = utils.cartesian2ElAz(x_s, y_s, z_s)
 
 
 freq_array = loadmat('data/freq.mat')['freq_array'] # Frequency array
@@ -44,7 +40,6 @@ Nfreq = len(k_array) # Number of frequencies
 
 
 P = loadmat('data/sound_pressure.mat')['P'] # Sound pressure
-P = np.transpose(P, (0, 2, 1)) # Adjust to a (freq x Q x time) tensor
 timeFrames = P.shape[2] # Number of time frames
 
 
@@ -58,15 +53,15 @@ V = int(np.floor(np.sqrt((order + 1)**2 - L - 1) - 1)) # Order of the power of a
 # SH calculations (just to test if necessary)
 
 # Real spherical harmonics for n = 3 and m = 2. For all elevations and azimuths.
-y2 = SHutils.realSHPerMode(3, 2, el, az)  # [Q x 1] output vector
+#y2 = SHutils.realSHPerMode(3, 2, el, az)  # [Q x 1] output vector
 # Complex spherical harmonics for n = 3, m = 2 for all elevations and azimuths.
-y4 = SHutils.complexSHPerMode(3, 2, el, az) # [Q x 1] output vector
+#y4 = SHutils.complexSHPerMode(3, 2, el, az) # [Q x 1] output vector
 
 # Complex spherical harmonics upto order = order. For all elevations and azimuths.
-y3 = SHutils.complexSH(order, el, az)
+#y3 = SHutils.complexSH(order, el, az)
 
 # Get all SH orders in an array according to ACN (Ambisonics Channel Numbering)
-n_arr = SHutils.ACNOrderArray(order)
+#n_arr = SHutils.ACNOrderArray(order)
 
 
 # %%
@@ -126,9 +121,11 @@ for i in range (timeFrames):
 # the first L elements of the theta_psd matrix (second dimension) represent the estimated source PSDs at the origin
 # the last element represents the estimated noise PSD at the origin. (second dimension)
 
-#%% PSD representation
-noise_psd = np.abs(theta_psd[:, -1, :]).T
-# Making the heatmap
+#%%
+# PSD representation
+
+# Heatmap for noise
+noise_psd = np.real(theta_psd[:, -1, :])
 plt.figure()
 plt.imshow(noise_psd, aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
 plt.colorbar(label='PSD(dB/Hz)')
@@ -136,5 +133,31 @@ plt.xlabel('Time frames')
 plt.ylabel('Frequency (Hz)')
 plt.title('Noise PSD heatmap')
 plt.show()
-
+# Heatmap for first source
+source1_psd = np.real(theta_psd[:, 0, :])
+plt.figure()
+plt.imshow(source1_psd, aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
+plt.colorbar(label='PSD(dB/Hz)')
+plt.xlabel('Time frames')
+plt.ylabel('Frequency (Hz)')
+plt.title('Source_1 PSD heatmap')
+plt.show()
+# Heatmap for second source
+source2_psd = np.real(theta_psd[:, 1, :])
+plt.figure()
+plt.imshow(source2_psd, aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
+plt.colorbar(label='PSD(dB/Hz)')
+plt.xlabel('Time frames')
+plt.ylabel('Frequency (Hz)')
+plt.title('Source_2 PSD heatmap')
+plt.show()
+# Heatmap for second source
+source3_psd = np.real(theta_psd[:, 2, :])
+plt.figure()
+plt.imshow(source3_psd, aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
+plt.colorbar(label='PSD(dB/Hz)')
+plt.xlabel('Time frames')
+plt.ylabel('Frequency (Hz)')
+plt.title('Source_3 PSD heatmap')
+plt.show()
 

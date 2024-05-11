@@ -1,3 +1,10 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SCRIPT WHICH PERFORMS THE SIMULATION FOR 3 SOURCES AND CALCULATES THE
+% SOUND PRESSURE.
+% Author: sergiozc
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 clear all;
 close all;
 clc;
@@ -31,7 +38,6 @@ z3 = 1.7; %eg: another human height
 
 %% Sources visualization
 % TIME VISUALIZATION
-
 % Time vector
 dura1 = length(s1) / fs;
 time1 = linspace(0, dura1, length(s1));
@@ -39,7 +45,6 @@ dura2 = length(s2) / fs;
 time2 = linspace(0, dura2, length(s2));
 dura3 = length(s3) / fs;
 time3 = linspace(0, dura3, length(s3));
-
 figure(1);
 plot(time1, s1);
 hold on;
@@ -56,7 +61,6 @@ s1_f = fft(s1);
 s2_f = fft(s2);
 s3_f = fft(s3);
 freq = linspace(0, fs, length(s1_f));
-
 figure(2);
 plot(freq(1:length(s1_f)/2), abs(s1_f(1:length(s1_f)/2)));
 hold on;
@@ -69,6 +73,9 @@ xlabel('Frequency (Hz)');
 ylabel('Magnitude');
 legend('Source 1', 'Source 2', 'Source 3');
 
+% SPATIAL VISUALIZATION
+% Room dimensions (same as room_sensor_config.txt)
+room_size = [5, 4, 2.6];
 % Microphones positions
 pos_mic = [
     1.0000, 1.0000, 1.3420;
@@ -103,10 +110,6 @@ pos_mic = [
     0.9803, 1.0060, 1.2634;
     0.9854, 1.0029, 1.2607;
     1.0000, 1.0000, 1.2580;];
-
-room_size = [5, 4, 2.6];
-
-% SPATIAL VISUALIZATION
 % Separating microphones positions
 x_mic = pos_mic(:, 1);
 y_mic = pos_mic(:, 2);
@@ -148,10 +151,10 @@ H3 = roomsimove_single('room_sensor_config.txt',[x3; y3; z3]);
 y = fftfilt(H1,s1) + fftfilt(H2,s2) + fftfilt(H3,s3);
 
 %% Sound pressure
-winlen = uint32(128); % it means 256 samples. 
+winlen = uint32(8);
 % winlen = 256; % It means 256 ms
-hop = 0.25;  % 75% overlap. Default is 50%, or 0.5
-nfft = 256; % Default is same length as winlen
+hop = 0.5;  % Overlap. Default is 50%, or 0.5
+nfft = 128; % Default is same length as winlen
 
 % Transformada de fourier para cada ventan
 stftObj = STFTClass(fs, winlen, hop, nfft);
@@ -160,11 +163,12 @@ stftObj = STFTClass(fs, winlen, hop, nfft);
 T = 500; % Number of time frames
 
 % Inicializar P como una matriz tridimensional
-P = zeros(winlen+1, T, Nmic);
+Nfreq = stftObj.pos_freq; % Number of frequencies
+P = zeros(Nfreq, Nmic, T);
 
 for n = 1:Nmic
     % STFT in each microphone signal
-    P(:, :, n) = stftObj.stft(y(:, n), T);
+    P(:, n, :) = stftObj.stft(y(:, n), T);
 end
 
 
@@ -178,7 +182,7 @@ pos_sources = [x1, y1, z1; x2, y2, z2; x3, y3, z3];
 save('../PSD-algorithm/data/pos_sources.mat', 'pos_sources');
 
 % Saving frequency array (to create a tensor in python)
-freq_array = stftObj.freqArray;
+freq_array = stftObj.freqArray; % Number of frequencies
 save('../PSD-algorithm/data/freq.mat', 'freq_array');
 
 % Saving sound pressure tensor
