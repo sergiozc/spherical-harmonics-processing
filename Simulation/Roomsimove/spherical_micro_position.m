@@ -9,28 +9,29 @@ clc;
 clear all;
 close all;
 
-% Number os microphones
+% Number of sensors (mics)
 num_mic = 32;
-% Sphere radius (meters)
-radius = 0.042;
-% Coordenates of the center of the sphere
+% radius
+radio = 0.042;
+% sphere center
 center = [1, 1, 1.3];
-% Calculate microphone positions in spherical coordinates
-theta = pi * (0:num_mic-1) / num_mic; % Polar angle
-phi = acos(1 - 2 * (0:num_mic-1) / (num_mic - 1)); % Azimut angle
-r = radius * ones(1, num_mic); % Same radius
-% Spherical coordinates to cartesian
-x = r .* sin(phi) .* cos(theta) + center(1);
-y = r .* sin(phi) .* sin(theta) + center(2);
-z = r .* cos(phi) + center(3);
 
-% Spatial Visualizaion
+% Micro position in spherical uniform coordinates
+theta = acos(1 - 2 * (1:num_mic) / (num_mic + 1)); % Ángulo polar
+phi = pi * (1 + sqrt(5)) * (1:num_mic); % Ángulo azimutal, distribución uniforme
+
+% spherical to cartesian coordinates
+x = radio * sin(theta) .* cos(phi) + center(1);
+y = radio * sin(theta) .* sin(phi) + center(2);
+z = radio * cos(theta) + center(3);
+
+% Spatial visualization
 figure;
 scatter3(x, y, z, 'filled');
 xlabel('X (m)');
 ylabel('Y (m)');
 zlabel('Z (m)');
-title('Positions of the microphones in the room');
+title('Posiciones de los micrófonos en la esfera');
 grid on;
 
 % Print the positions

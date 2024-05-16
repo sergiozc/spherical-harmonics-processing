@@ -11,9 +11,13 @@ clc;
 
 addpath(genpath('stft_library'))
 
-%% Sources definition
+%% Sources definition (fs in "room_sensor_config.txt too)
+
 % FIRST SOURCE
-[s1,fs] = audioread('sources/scarface_alpacino.wav');
+%[s1,fs] = audioread('sources/scarface_alpacino.wav');
+freq1 = 440; fs = 16000; duration = 5; % Hz, samples/s, s
+s1 = sin_source_generation(freq1, duration, fs);
+
 % Position (in meters)
 x1 = 3;
 y1 = 2.1;
@@ -21,17 +25,25 @@ z1 = 1.65; %eg: another human height
 
 
 % SECOND SOURCE
-[s2,fs] = audioread('sources/every_man_De_Niro.wav');
-s2 = s2(1:length(s1));  % Same length as source 1
+%[s2,fs] = audioread('sources/every_man_De_Niro.wav');
+%s2 = s2(1:length(s1));  % Same length as source 1
+
+freq2 = 900; fs = 16000; duration = 5; % Hz, samples/s, s
+s2 = sin_source_generation(freq2, duration, fs);
+
 % Position (in meters)
 x2 = 1;
 y2 = 3.5;
 z2 = 1.8; %eg: human height
 
 % THIRD SOURCE
-[s3,fs] = audioread('sources/eastwood_lawyers.wav');
+%[s3,fs] = audioread('sources/eastwood_lawyers.wav');
+%s3 = s3(1:length(s1)); % Same length as source 1
+
+freq3 = 2500; fs = 16000; duration = 5; % Hz, samples/s, s
+s3 = sin_source_generation(freq3, duration, fs);
+
 % Position (in meters)
-s3 = s3(1:length(s1)); % Same length as source 1
 x3 = 4;
 y3 = 1.5;
 z3 = 1.7; %eg: another human height
@@ -45,7 +57,7 @@ dura2 = length(s2) / fs;
 time2 = linspace(0, dura2, length(s2));
 dura3 = length(s3) / fs;
 time3 = linspace(0, dura3, length(s3));
-figure(1);
+figure;
 plot(time1, s1);
 hold on;
 plot(time2, s2);
@@ -61,7 +73,7 @@ s1_f = fft(s1);
 s2_f = fft(s2);
 s3_f = fft(s3);
 freq = linspace(0, fs, length(s1_f));
-figure(2);
+figure;
 plot(freq(1:length(s1_f)/2), abs(s1_f(1:length(s1_f)/2)));
 hold on;
 plot(freq(1:length(s1_f)/2), abs(s2_f(1:length(s1_f)/2)));
@@ -78,38 +90,39 @@ legend('Source 1', 'Source 2', 'Source 3');
 room_size = [5, 4, 2.6];
 % Microphones positions
 pos_mic = [
-    1.0000, 1.0000, 1.3420;
-    1.0148, 1.0015, 1.3393;
-    1.0202, 1.0040, 1.3366;
-    1.0238, 1.0072, 1.3339;
-    1.0260, 1.0108, 1.3312;
-    1.0272, 1.0146, 1.3285;
-    1.0276, 1.0184, 1.3257;
-    1.0271, 1.0223, 1.3230;
-    1.0260, 1.0260, 1.3203;
-    1.0242, 1.0295, 1.3176;
-    1.0218, 1.0326, 1.3149;
-    1.0189, 1.0354, 1.3122;
-    1.0157, 1.0378, 1.3095;
-    1.0120, 1.0397, 1.3068;
-    1.0082, 1.0410, 1.3041;
-    1.0041, 1.0418, 1.3014;
-    1.0000, 1.0420, 1.2986;
-    0.9959, 1.0416, 1.2959;
-    0.9919, 1.0407, 1.2932;
-    0.9881, 1.0392, 1.2905;
-    0.9846, 1.0371, 1.2878;
-    0.9815, 1.0346, 1.2851;
-    0.9788, 1.0317, 1.2824;
-    0.9767, 1.0284, 1.2797;
-    0.9752, 1.0248, 1.2770;
-    0.9743, 1.0211, 1.2743;
-    0.9743, 1.0172, 1.2715;
-    0.9752, 1.0133, 1.2688;
-    0.9771, 1.0095, 1.2661;
-    0.9803, 1.0060, 1.2634;
-    0.9854, 1.0029, 1.2607;
-    1.0000, 1.0000, 1.2580;];
+    0.9894, 0.9903, 1.3395;
+    1.0018, 1.0200, 1.3369;
+    1.0147, 0.9808, 1.3344;
+    0.9730, 1.0048, 1.3318;
+    1.0254, 1.0162, 1.3293;
+    0.9916, 0.9687, 1.3267;
+    0.9842, 1.0305, 1.3242;
+    1.0338, 0.9877, 1.3216;
+    0.9654, 0.9857, 1.3191;
+    1.0164, 1.0350, 1.3165;
+    1.0119, 0.9622, 1.3140;
+    0.9650, 1.0203, 1.3115;
+    1.0401, 1.0088, 1.3089;
+    0.9761, 0.9660, 1.3064;
+    0.9946, 1.0415, 1.3038;
+    1.0321, 0.9729, 1.3013;
+    0.9581, 0.9983, 1.2987;
+    1.0296, 1.0295, 1.2962;
+    0.9981, 0.9585, 1.2936;
+    0.9737, 1.0315, 1.2911;
+    1.0400, 0.9946, 1.2885;
+    0.9675, 0.9774, 1.2860;
+    1.0085, 1.0377, 1.2835;
+    1.0186, 0.9675, 1.2809;
+    0.9657, 1.0109, 1.2784;
+    1.0312, 1.0144, 1.2758;
+    0.9875, 0.9701, 1.2733;
+    0.9898, 1.0283, 1.2707;
+    1.0243, 0.9872, 1.2682;
+    0.9766, 0.9938, 1.2656;
+    1.0108, 1.0169, 1.2631;
+    1.0024, 0.9858, 1.2605;
+];
 % Separating microphones positions
 x_mic = pos_mic(:, 1);
 y_mic = pos_mic(:, 2);
@@ -156,13 +169,13 @@ winlen = uint32(8);
 hop = 0.5;  % Overlap. Default is 50%, or 0.5
 nfft = 128; % Default is same length as winlen
 
-% Transformada de fourier para cada ventan
+% Fourier transform for each window
 stftObj = STFTClass(fs, winlen, hop, nfft);
 
 % Perform the STFT on y
 T = 500; % Number of time frames
 
-% Inicializar P como una matriz tridimensional
+% Sound pressure as a tensor
 Nfreq = stftObj.pos_freq; % Number of frequencies
 P = zeros(Nfreq, Nmic, T);
 
@@ -170,6 +183,7 @@ for n = 1:Nmic
     % STFT in each microphone signal
     P(:, n, :) = stftObj.stft(y(:, n), T);
 end
+
 
 
 %% Saving data
@@ -200,7 +214,7 @@ mic3 = y(:, 32);
 %soundsc(mic2, fs);
 %soundsc(mic3, fs);
 
-figure(3);
+figure;
 plot(time1, mic1);
 hold on;
 plot(time1, mic2);
@@ -211,3 +225,43 @@ ylabel('Amplitude');
 title('Recorded signals (mic #1, #2 and #32)');
 legend('Mic 1', 'Mic 2', 'Mic 32');
 
+%% Sources' PSD representation
+% Calcular la STFT
+[S, F, T] = spectrogram(s1, winlen, winlen/2, [], fs);
+
+magnitud = abs(S);
+PSD = magnitud.^2;
+
+figure;
+imagesc(T, F, 10*log10(PSD));
+colorbar;
+axis xy;
+caxis([-60, 0])
+xlabel('Time (s)');
+ylabel('Frequency (Hz)');
+title('PSD source 1');
+
+[S, F, T] = spectrogram(s2, winlen, winlen/2, [], fs);
+
+magnitud = abs(S);
+PSD = magnitud.^2;
+figure;
+imagesc(T, F, 10*log10(PSD));
+colorbar;
+axis xy;
+caxis([-60, 0])
+xlabel('Time (s)');
+ylabel('Frequency (Hz)');
+title('PSD source 2');
+
+[S, F, T] = spectrogram(s3, winlen, winlen/2, [], fs);
+magnitud = abs(S);
+PSD = magnitud.^2;
+figure;
+imagesc(T, F, 10*log10(PSD));
+colorbar;
+axis xy;
+caxis([-60, 0])
+xlabel('Time (s)');
+ylabel('Frequency (Hz)');
+title('PSD source 3');

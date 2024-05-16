@@ -12,33 +12,42 @@ from utils import utils
 import numpy as np
 from scipy.io import loadmat
 import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 # %%
 # PARAMETER DEFINITION
 
-r = 0.042 # Assuming same radius
 c = 343 # Propagation speed
+r = 0.042 # Assuming same radius
+room_size = np.array([5, 4, 2.6]) # Room dimensions
+center_mic = np.array([1, 1, 1.3]) # Center of the microphone sphere
+center_sources = np.array([0, 0, 0]) # Origin of the sources
 
+# Microphones' posictions
 pos_mic = loadmat('data/pos_mic.mat')['pos_mic'] # Microphones positions (x,y,z)
 Q = pos_mic.shape[0]  # Number of microphones (selecting rows' length) 
 el = np.zeros(Q) # Mic elevation
 az = np.zeros(Q) # Mic azimut
+r_pos_mic = np.zeros(Q) # Distance vector for microphones
 for i, (x, y, z) in enumerate(pos_mic): # Switch to el and az (from cartesian)
-    el[i], az[i] = utils.cartesian2ElAz(x, y, z)
+    el[i], az[i], r_pos_mic[i] = utils.cart2sph(x, y, z)
 
+# Sources' positions
 pos_sources = loadmat('data/pos_sources.mat')['pos_sources'] # Sources positions (x,y,z)
 L = pos_sources.shape[0]  # Number of sources (selecting rows' length)
 el_s = np.zeros(L) # Sources elevation
 az_s = np.zeros(L) # Sources azimut
+r_pos_s = np.zeros(L) # Distance vector (r) for sources
 for j, (x_s, y_s, z_s) in enumerate(pos_sources):# Switch to el and az (from cartesian)
-    el_s[j], az_s[j] = utils.cartesian2ElAz(x_s, y_s, z_s)
+    el_s[j], az_s[j], r_pos_s[j] = utils.cart2sph(x_s, y_s, z_s)
 
-
+# Frequency values
 freq_array = loadmat('data/freq.mat')['freq_array'] # Frequency array
-freq_array[0] = 0.1 # To avoid dividing by zero
+freq_array[0] = 1 # To avoid dividing by zero
 k_array = SHutils.getK(freq_array, c) # Wavenumber array
 Nfreq = len(k_array) # Number of frequencies
 
-
+# Sound pressure and timeframes
 P = loadmat('data/sound_pressure.mat')['P'] # Sound pressure
 timeFrames = P.shape[2] # Number of time frames
 
@@ -48,6 +57,23 @@ order = 4 # Spherical harmonic order (it defines the complexity of the spherical
 Nmin = 2 # Minimun sound order
 V = int(np.floor(np.sqrt((order + 1)**2 - L - 1) - 1)) # Order of the power of a reverberation sound field.
 # See Eq (59) from the paper. # The higher the order the greater the reverberation complexity.
+
+# %% Microphones and sources spatial visualization (check)
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(pos_mic[:, 0], pos_mic[:, 1], pos_mic[:, 2], c='b', marker='o', label='Microphones')
+ax.scatter(pos_sources[0, 0], pos_sources[0, 1], pos_sources[0, 2], c='r', marker='o', label='Source 1')
+ax.scatter(pos_sources[1, 0], pos_sources[1, 1], pos_sources[1, 2], c='r', marker='o', label='Source 2')
+ax.scatter(pos_sources[2, 0], pos_sources[2, 1], pos_sources[2, 2], c='r', marker='o', label='Source 3')
+ax.set_xlabel('X (m)')
+ax.set_ylabel('Y (m)')
+ax.set_zlabel('Z (m)')
+ax.set_xlim([0, room_size[0]])
+ax.set_ylim([0, room_size[1]])
+ax.set_zlim([0, room_size[2]])
+ax.set_title('Microphones and sources positions')
+plt.show()
 
 #%%
 # SH calculations (just to test if necessary)
@@ -125,36 +151,36 @@ for i in range (timeFrames):
 # PSD representation
 
 # Heatmap for noise
-noise_psd = np.real(theta_psd[:, -1, :])
+noise_psd = np.abs(theta_psd[:, -1, :])
 plt.figure()
-plt.imshow(noise_psd, aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
+plt.imshow(10*np.log10(noise_psd), aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
 plt.colorbar(label='PSD(dB/Hz)')
 plt.xlabel('Time frames')
 plt.ylabel('Frequency (Hz)')
 plt.title('Noise PSD heatmap')
 plt.show()
 # Heatmap for first source
-source1_psd = np.real(theta_psd[:, 0, :])
+source1_psd = np.abs(theta_psd[:, 0, :])
 plt.figure()
-plt.imshow(source1_psd, aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
+plt.imshow(10*np.log10(source1_psd), aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
 plt.colorbar(label='PSD(dB/Hz)')
 plt.xlabel('Time frames')
 plt.ylabel('Frequency (Hz)')
 plt.title('Source_1 PSD heatmap')
 plt.show()
 # Heatmap for second source
-source2_psd = np.real(theta_psd[:, 1, :])
+source2_psd = np.abs(theta_psd[:, 1, :])
 plt.figure()
-plt.imshow(source2_psd, aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
+plt.imshow(10*np.log10(source2_psd), aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
 plt.colorbar(label='PSD(dB/Hz)')
 plt.xlabel('Time frames')
 plt.ylabel('Frequency (Hz)')
 plt.title('Source_2 PSD heatmap')
 plt.show()
 # Heatmap for second source
-source3_psd = np.real(theta_psd[:, 2, :])
+source3_psd = np.abs(theta_psd[:, 2, :])
 plt.figure()
-plt.imshow(source3_psd, aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
+plt.imshow(10*np.log10(source3_psd), aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
 plt.colorbar(label='PSD(dB/Hz)')
 plt.xlabel('Time frames')
 plt.ylabel('Frequency (Hz)')

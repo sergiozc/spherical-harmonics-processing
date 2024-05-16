@@ -101,7 +101,7 @@ class PSDestimation:
         """
     
         
-        psi = PSDestimation.c_factor(n, n_p) * PSDestimation.w_factor(n, n_p, m, m_p, u, v)
+        psi = PSDestimation.c_factor(n, n_p) * PSDestimation.w_factor(n_p, v, m_p, u, m, n) # Index order must be compared between Eq (64) and Eq (39)
     
         return psi
     
@@ -123,7 +123,7 @@ class PSDestimation:
         kr = k * r
         fact1 = (4 * np.pi)**(3/2) * 1j**(n - n_p + 2*m + 2*m_p)
         fact2 = BHfunctions.sph_besselj(n, kr) * BHfunctions.sph_besselj(n_p, kr)
-        fact3 = PSDestimation.w_factor(n, n_p, -m, -m_p, 0, 0)
+        fact3 = PSDestimation.w_factor(n_p, 0, -m_p, 0, -m, n)
         
         if isinstance(kr, np.ndarray):
             denom = (np.abs(SHutils.sph_bn(n, kr, True))**2).T
@@ -196,7 +196,7 @@ class PSDestimation:
         # Filling the matrix
         for k in range (Nfreq):
             # Final matrix (translation matrix)
-            T_matrix[k, :, :] = np.concatenate((ups, psi, omega[:, k].reshape(-1, 1)), axis=1)
+            T_matrix[k, :, :] = np.concatenate((ups, psi, omega[:, k].reshape(-1, 1)), axis=1) # Reshape is used to concrete a one-column matrix
                 
         return T_matrix
     
@@ -229,7 +229,7 @@ class PSDestimation:
             # m iteration
             for m in range(-n, n+1):
                 # n' iteration
-                j_p = 0 # Index to manage (select rows) alpha' values
+                j_p = 0 # Index to manage (select rows) alpha' values (n' m')
                 for n_p in range(N+1):
                     # m' iteration
                     for m_p in range(-n_p, n_p+1):

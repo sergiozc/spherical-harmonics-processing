@@ -11,7 +11,7 @@ import numpy as np
 class utils:
     
     @staticmethod 
-    def cartesian2ElAz(x, y, z):
+    def cart2sph(x, y, z):
         
         """
         Converts cartesian to azimuthal and elevation values.
@@ -20,17 +20,22 @@ class utils:
             x: X coordenate
             y: Y coordenate
             z: Z coordenate
+            center: center of the sphere (x0, y0, z0)
 
         Returns:
             float: elevation (rad)
             float: azimuthal (rad)
         """
-        # Calculating elevation
-        el = np.arcsin(z / np.sqrt(x**2 + y**2 + z**2))
-        # Calculating azimuth (arctan(y/x))
+        
+        # Calcular la magnitud del vector posición (r)
+        r = np.sqrt(x**2 + y**2 + z**2)
+        # Calcular la elevación (theta)
+        el = np.arccos(z / r)
+        # Calcular el azimut (phi)
         az = np.arctan2(y, x)
         
-        return el, az
+        
+        return el, az, r
     
     @staticmethod 
     def ewma(beta, data):
@@ -67,7 +72,8 @@ class utils:
             numpy.ndarray: Smoothed expected value EWMA.
         """
         ewma_values = np.zeros_like(data)
-
+        
+        # Initial values
         ewma_values[..., 0] = data[..., 0]
 
         for tau in range(1, data.shape[-1]):
