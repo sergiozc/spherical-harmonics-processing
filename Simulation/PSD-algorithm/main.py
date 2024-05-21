@@ -75,6 +75,7 @@ ax.set_zlim([0, room_size[2]])
 ax.set_title('Microphones and sources positions')
 plt.show()
 
+
 #%%
 # SH calculations (just to test if necessary)
 
@@ -151,18 +152,19 @@ for i in range (timeFrames):
 # PSD representation
 
 # Heatmap for noise
-noise_psd = np.abs(theta_psd[:, -1, :])
-plt.figure()
-plt.imshow(10*np.log10(noise_psd), aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
-plt.colorbar(label='PSD(dB/Hz)')
-plt.xlabel('Time frames')
-plt.ylabel('Frequency (Hz)')
-plt.title('Noise PSD heatmap')
-plt.show()
+# noise_psd = np.abs(theta_psd[:, -1, :])
+# plt.figure()
+# plt.imshow(10*np.log10(noise_psd), aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
+# plt.colorbar(label='PSD(dB/Hz)')
+# plt.xlabel('Time frames')
+# plt.ylabel('Frequency (Hz)')
+# plt.title('Noise PSD heatmap')
+# plt.show()
+
 # Heatmap for first source
 source1_psd = np.abs(theta_psd[:, 0, :])
 plt.figure()
-plt.imshow(10*np.log10(source1_psd), aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
+plt.imshow(10*np.log10(source1_psd), aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 8000])
 plt.colorbar(label='PSD(dB/Hz)')
 plt.xlabel('Time frames')
 plt.ylabel('Frequency (Hz)')
@@ -171,7 +173,7 @@ plt.show()
 # Heatmap for second source
 source2_psd = np.abs(theta_psd[:, 1, :])
 plt.figure()
-plt.imshow(10*np.log10(source2_psd), aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
+plt.imshow(10*np.log10(source2_psd), aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 8000])
 plt.colorbar(label='PSD(dB/Hz)')
 plt.xlabel('Time frames')
 plt.ylabel('Frequency (Hz)')
@@ -180,7 +182,7 @@ plt.show()
 # Heatmap for second source
 source3_psd = np.abs(theta_psd[:, 2, :])
 plt.figure()
-plt.imshow(10*np.log10(source3_psd), aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
+plt.imshow(10*np.log10(source3_psd), aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 8000])
 plt.colorbar(label='PSD(dB/Hz)')
 plt.xlabel('Time frames')
 plt.ylabel('Frequency (Hz)')

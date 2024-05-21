@@ -17,7 +17,6 @@ addpath(genpath('stft_library'))
 %[s1,fs] = audioread('sources/scarface_alpacino.wav');
 freq1 = 440; fs = 16000; duration = 5; % Hz, samples/s, s
 s1 = sin_source_generation(freq1, duration, fs);
-
 % Position (in meters)
 x1 = 3;
 y1 = 2.1;
@@ -27,10 +26,8 @@ z1 = 1.65; %eg: another human height
 % SECOND SOURCE
 %[s2,fs] = audioread('sources/every_man_De_Niro.wav');
 %s2 = s2(1:length(s1));  % Same length as source 1
-
 freq2 = 900; fs = 16000; duration = 5; % Hz, samples/s, s
 s2 = sin_source_generation(freq2, duration, fs);
-
 % Position (in meters)
 x2 = 1;
 y2 = 3.5;
@@ -39,35 +36,14 @@ z2 = 1.8; %eg: human height
 % THIRD SOURCE
 %[s3,fs] = audioread('sources/eastwood_lawyers.wav');
 %s3 = s3(1:length(s1)); % Same length as source 1
-
 freq3 = 2500; fs = 16000; duration = 5; % Hz, samples/s, s
 s3 = sin_source_generation(freq3, duration, fs);
-
 % Position (in meters)
 x3 = 4;
 y3 = 1.5;
 z3 = 1.7; %eg: another human height
 
 %% Sources visualization
-% TIME VISUALIZATION
-% Time vector
-dura1 = length(s1) / fs;
-time1 = linspace(0, dura1, length(s1));
-dura2 = length(s2) / fs;
-time2 = linspace(0, dura2, length(s2));
-dura3 = length(s3) / fs;
-time3 = linspace(0, dura3, length(s3));
-figure;
-plot(time1, s1);
-hold on;
-plot(time2, s2);
-plot(time3, s3);
-hold off;
-xlabel('Time (s)');
-ylabel('Amplitude');
-title('Sources in time domain');
-legend('Source 1', 'Source 2', 'Source 3');
-
 % FREQUENCY DOMAIN
 s1_f = fft(s1);
 s2_f = fft(s2);
@@ -164,16 +140,17 @@ H3 = roomsimove_single('room_sensor_config.txt',[x3; y3; z3]);
 y = fftfilt(H1,s1) + fftfilt(H2,s2) + fftfilt(H3,s3);
 
 %% Sound pressure
-winlen = uint32(8);
+winlen = uint32(256);
 % winlen = 256; % It means 256 ms
 hop = 0.5;  % Overlap. Default is 50%, or 0.5
-nfft = 128; % Default is same length as winlen
+nfft = 256; % Default is same length as winlen
 
 % Fourier transform for each window
 stftObj = STFTClass(fs, winlen, hop, nfft);
 
 % Perform the STFT on y
 T = 500; % Number of time frames
+T_vector = linspace(1,500, 500);
 
 % Sound pressure as a tensor
 Nfreq = stftObj.pos_freq; % Number of frequencies
@@ -184,8 +161,19 @@ for n = 1:Nmic
     P(:, n, :) = stftObj.stft(y(:, n), T);
 end
 
+freq_array = stftObj.freqArray; % Number of frequencies
 
-
+% Spectrogram for sound pressure (mic #1)
+P_psd_1 = abs(squeeze(P(:, 1, :)));
+P_psd_1 = 10*log10(P_psd_1);
+figure;
+imagesc(T_vector, freq_array, P_psd_1);
+axis xy;
+colorbar_handle = colorbar; 
+xlabel('Timeframes');
+ylabel('Frequency (Hz)');
+title('PSD of sound pressure from mic #1');
+ylabel(colorbar_handle, 'dB/Hz');
 %% Saving data
 
 % Saving sensors positions (cartesian)
@@ -196,7 +184,6 @@ pos_sources = [x1, y1, z1; x2, y2, z2; x3, y3, z3];
 save('../PSD-algorithm/data/pos_sources.mat', 'pos_sources');
 
 % Saving frequency array (to create a tensor in python)
-freq_array = stftObj.freqArray; % Number of frequencies
 save('../PSD-algorithm/data/freq.mat', 'freq_array');
 
 % Saving sound pressure tensor
@@ -204,6 +191,14 @@ save('../PSD-algorithm/data/sound_pressure.mat', 'P');
 
 
 %% Recorded signals
+
+% Time vector
+dura1 = length(s1) / fs;
+time1 = linspace(0, dura1, length(s1));
+dura2 = length(s2) / fs;
+time2 = linspace(0, dura2, length(s2));
+dura3 = length(s3) / fs;
+time3 = linspace(0, dura3, length(s3));
 
 % Each microphone
 mic1 = y(:, 1);
@@ -226,42 +221,43 @@ title('Recorded signals (mic #1, #2 and #32)');
 legend('Mic 1', 'Mic 2', 'Mic 32');
 
 %% Sources' PSD representation
-% Calcular la STFT
-[S, F, T] = spectrogram(s1, winlen, winlen/2, [], fs);
+% SECTROGRAM FOR SOURCES
+winlen = uint32(256);
+% winlen = 256; % It means 256 ms
+hop = 0.5;  % Overlap. Default is 50%, or 0.5
+nfft = 256; % Default is same length as winlen
+% Fourier transform for each window
+stftObj = STFTClass(fs, winlen, hop, nfft);
 
-magnitud = abs(S);
-PSD = magnitud.^2;
-
+s1_STFT = stftObj.stft(s1, T);
+s1_psd = 10*log10(abs(s1_STFT));
 figure;
-imagesc(T, F, 10*log10(PSD));
-colorbar;
+imagesc(T_vector, freq_array, s1_psd);
 axis xy;
-caxis([-60, 0])
-xlabel('Time (s)');
+colorbar_handle = colorbar; 
+xlabel('Timeframes');
 ylabel('Frequency (Hz)');
-title('PSD source 1');
+title('Source 1 PSD');
+ylabel(colorbar_handle, 'dB/Hz');
 
-[S, F, T] = spectrogram(s2, winlen, winlen/2, [], fs);
-
-magnitud = abs(S);
-PSD = magnitud.^2;
+s2_STFT = stftObj.stft(s2, T);
+s2_psd = 10*log10(abs(s2_STFT));
 figure;
-imagesc(T, F, 10*log10(PSD));
-colorbar;
+imagesc(T_vector, freq_array, s2_psd);
 axis xy;
-caxis([-60, 0])
-xlabel('Time (s)');
+colorbar_handle = colorbar; 
+xlabel('Timeframes');
 ylabel('Frequency (Hz)');
-title('PSD source 2');
+title('Source 2 PSD');
+ylabel(colorbar_handle, 'dB/Hz');
 
-[S, F, T] = spectrogram(s3, winlen, winlen/2, [], fs);
-magnitud = abs(S);
-PSD = magnitud.^2;
+s3_STFT = stftObj.stft(s3, T);
+s3_psd = 10*log10(abs(s3_STFT));
 figure;
-imagesc(T, F, 10*log10(PSD));
-colorbar;
+imagesc(T_vector, freq_array, s3_psd);
 axis xy;
-caxis([-60, 0])
-xlabel('Time (s)');
-ylabel('Frequency (Hz)');
-title('PSD source 3');
+colorbar_handle = colorbar;  
+xlabel('Timeframes');
+ylabel('Frequency');
+title('Source 3 PSD');
+ylabel(colorbar_handle, 'dB/Hz');

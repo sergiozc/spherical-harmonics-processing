@@ -73,7 +73,7 @@ class utils:
         """
         ewma_values = np.zeros_like(data)
         
-        # Initial values
+        # Initial values (same as ewma_values[:, :, 0] = data[:, :, 0])
         ewma_values[..., 0] = data[..., 0]
 
         for tau in range(1, data.shape[-1]):

@@ -334,13 +334,6 @@ class SHutils:
                 Y_mat = Y_mat * weight
             
             alpha = Y_mat @ P
-            
-        if isinstance(kr, np.ndarray): # Checking if it is an array
-            if (max(np.ceil(kr)) + 1) ** 2 > len(az):
-                print('(N + 1)^2 > Q, spatial alising might occur.')
-        else:
-            if (np.ceil(kr) + 1) ** 2 > len(az):
-                print('(N + 1)^2 > Q, spatial alising might occur.')
 
     
         return alpha 
