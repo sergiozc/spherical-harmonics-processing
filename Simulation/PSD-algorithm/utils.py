@@ -34,8 +34,27 @@ class utils:
         # Calcular el azimut (phi)
         az = np.arctan2(y, x)
         
+        # Make sure [0, 2pi]
+       # az[az < 0] += 2 * np.pi
+        
         
         return el, az, r
+    
+    
+    @staticmethod
+    def calculate_rows(Nmin, N):
+        """
+        Calculates the corresponding number of rows.
+    
+        Parameters:
+           Nmin (int): Minimun SH order.
+           N (int): Maximum SH order
+    
+        Returns:
+            int: number of rows
+        """
+        total = sum(2*n + 1 for n in range(Nmin, N + 1))
+        return total ** 2
     
     @staticmethod 
     def ewma(beta, data):
@@ -47,7 +66,7 @@ class utils:
             data (numpy.ndarray): input data.
             beta (float): Smoothing factor.
     
-        Retorna:
+        Returns:
             numpy.ndarray: Smoothed expected value EWMA.
         """
         ewma_values = np.zeros_like(data)

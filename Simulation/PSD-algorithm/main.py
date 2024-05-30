@@ -20,8 +20,6 @@ from mpl_toolkits.mplot3d import Axes3D
 c = 343 # Propagation speed
 r = 0.042 # Assuming same radius
 room_size = np.array([5, 4, 2.6]) # Room dimensions
-center_mic = np.array([1, 1, 1.3]) # Center of the microphone sphere
-center_sources = np.array([0, 0, 0]) # Origin of the sources
 
 # Microphones' posictions
 pos_mic = loadmat('data/pos_mic.mat')['pos_mic'] # Microphones positions (x,y,z)
@@ -29,7 +27,7 @@ Q = pos_mic.shape[0]  # Number of microphones (selecting rows' length)
 el = np.zeros(Q) # Mic elevation
 az = np.zeros(Q) # Mic azimut
 r_pos_mic = np.zeros(Q) # Distance vector for microphones
-for i, (x, y, z) in enumerate(pos_mic): # Switch to el and az (from cartesian)
+for i, (x, y, z) in enumerate(pos_mic): # Switch to el and az (from cartesian)''
     el[i], az[i], r_pos_mic[i] = utils.cart2sph(x, y, z)
 
 # Sources' positions
@@ -54,9 +52,16 @@ timeFrames = P.shape[2] # Number of time frames
 
 order = 4 # Spherical harmonic order (it defines the complexity of the spherical function).
 # Defined in the "experimental setup" of the paper. Highest order to calculate.
-Nmin = 2 # Minimun sound order
-V = int(np.floor(np.sqrt((order + 1)**2 - L - 1) - 1)) # Order of the power of a reverberation sound field.
+Nmin = 2 # Minimun order
+
+# V <= int(np.floor(np.sqrt((order + 1)**2 - L - 1) - 1)) # Order of the power of a reverberation sound field.
+V = 1
 # See Eq (59) from the paper. # The higher the order the greater the reverberation complexity.
+
+# Order and Mode array
+nm_arr = SHutils.ACNOrderModeArray(order)
+# Index to cut from Nmin. E.g to get alpha from Nmin.
+cut_Nmin = Nmin**2
 
 # %% Microphones and sources spatial visualization (check)
 
@@ -82,7 +87,7 @@ plt.show()
 # Real spherical harmonics for n = 3 and m = 2. For all elevations and azimuths.
 #y2 = SHutils.realSHPerMode(3, 2, el, az)  # [Q x 1] output vector
 # Complex spherical harmonics for n = 3, m = 2 for all elevations and azimuths.
-#y4 = SHutils.complexSHPerMode(3, 2, el, az) # [Q x 1] output vector
+#y4 = SHutils.complexSHPerMode(3, 2, el_s, az_s) # [Q x 1] output vector
 
 # Complex spherical harmonics upto order = order. For all elevations and azimuths.
 #y3 = SHutils.complexSH(order, el, az)
@@ -114,10 +119,12 @@ applyRegularization = False
 
 # Alpha as a tensor (depends on frequency)
 alpha = np.zeros((Nfreq, (order+1)**2, timeFrames), dtype=complex)
-# Frequency loop
+# Frequency loop. Alpha is calculated for nm (see nm_array)
 for k_index, k in enumerate(k_array):
     alpha[k_index, :, :] = SHutils.alphaOmni(P[k_index, :, :], order, k, r, el, az, isRigid, mode, compensateBesselZero, applyRegularization, weights)
-    
+
+# Calculated alpha from Nmin
+alpha_cut = alpha[:, cut_Nmin:, :]
 #%% 
 # UPSILON, PSI, OMEGA calculation (3rd step of the algorithm)
 
@@ -131,13 +138,13 @@ for k_index, k in enumerate(k_array):
 #%%
 # PSDs MATRIX CALCULATION
 
-N = 4 # order
+N = order # order
 # Translation matrix (T) (tensor 3D)
-T_matrix = PSDestimation.translation_matrix(el_s, az_s, k_array, r, N, V, L)
+T_matrix = PSDestimation.translation_matrix(el_s, az_s, k_array, r, N, Nmin, V, L)
 
 # Lambda matrix (tensor 3D)
-beta = 0.8 # Smoothing factor
-lambda_matrix_t  = PSDestimation.lambda_matrix(k_array, N, beta, alpha, timeFrames)
+beta = 0.3 # Smoothing factor
+lambda_matrix_t  = PSDestimation.lambda_matrix(k_array, N, Nmin, beta, alpha_cut, timeFrames)
 
 # %%
 # PSD matrix (per time frames)
@@ -154,38 +161,47 @@ for i in range (timeFrames):
 # Heatmap for noise
 # noise_psd = np.abs(theta_psd[:, -1, :])
 # plt.figure()
-# plt.imshow(10*np.log10(noise_psd), aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 5500])
+# plt.imshow(10*np.log10(noise_psd), aspect='auto', cmap='hot', origin='lower',extent=[0, timeFrames-1, 0, int(freq_array[-1])], vmin=-70, vmax=0)
 # plt.colorbar(label='PSD(dB/Hz)')
 # plt.xlabel('Time frames')
 # plt.ylabel('Frequency (Hz)')
-# plt.title('Noise PSD heatmap')
+# plt.title('Estimated PSD. Noise.')
 # plt.show()
 
 # Heatmap for first source
 source1_psd = np.abs(theta_psd[:, 0, :])
 plt.figure()
-plt.imshow(10*np.log10(source1_psd), aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 8000])
+plt.imshow(10*np.log10(source1_psd), aspect='auto', cmap='hot', origin='lower',extent=[0, timeFrames-1, 0, int(freq_array[-1])], vmin=-70, vmax=0)
 plt.colorbar(label='PSD(dB/Hz)')
 plt.xlabel('Time frames')
 plt.ylabel('Frequency (Hz)')
-plt.title('Source_1 PSD heatmap')
+plt.title('Estimated PSD. Source 1.')
 plt.show()
 # Heatmap for second source
 source2_psd = np.abs(theta_psd[:, 1, :])
 plt.figure()
-plt.imshow(10*np.log10(source2_psd), aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 8000])
+plt.imshow(10*np.log10(source2_psd), aspect='auto', cmap='hot', origin='lower',extent=[0, timeFrames-1, 0, int(freq_array[-1])], vmin=-70, vmax=0)
 plt.colorbar(label='PSD(dB/Hz)')
 plt.xlabel('Time frames')
 plt.ylabel('Frequency (Hz)')
-plt.title('Source_2 PSD heatmap')
+plt.title('Estimated PSD. Source 2.')
 plt.show()
 # Heatmap for second source
 source3_psd = np.abs(theta_psd[:, 2, :])
 plt.figure()
-plt.imshow(10*np.log10(source3_psd), aspect='auto', cmap='viridis', origin='lower',extent=[0, timeFrames-1, 0, 8000])
+plt.imshow(10*np.log10(source3_psd), aspect='auto', cmap='hot', origin='lower',extent=[0, timeFrames-1, 0, int(freq_array[-1])], vmin=-70, vmax=0)
 plt.colorbar(label='PSD(dB/Hz)')
 plt.xlabel('Time frames')
 plt.ylabel('Frequency (Hz)')
-plt.title('Source_3 PSD heatmap')
+plt.title('Estimated PSD. Source 3')
 plt.show()
 
+
+# reverberation = np.abs(theta_psd[:, 3, :])
+# plt.figure()
+# plt.imshow(10*np.log10(reverberation), aspect='auto', cmap='hot', origin='lower',extent=[0, timeFrames-1, 0, int(freq_array[-1])], vmin=-70, vmax=0)
+# plt.colorbar(label='PSD(dB/Hz)')
+# plt.xlabel('Time frames')
+# plt.ylabel('Frequency (Hz)')
+# plt.title('Estimated PSD. Reverberation 1.')
+# plt.show()

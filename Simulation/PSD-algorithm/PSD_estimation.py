@@ -35,6 +35,7 @@ class PSDestimation:
     
     @staticmethod
     def w_factor(n, n_p, m, m_p, u, v):
+        
         """
         Calculates W factor of the PSD estimation algorithm. Eq (64) from the paper.
     
@@ -49,7 +50,7 @@ class PSDestimation:
             
         """
         # Gaunt coefficient --> gaunt()
-        # Reference:  https://docs.sympy.org/latest/modules/physics/wigner.html#sympy.physics.wigner.wigner_3j
+        # Reference:  https://docs.sympy.org/latest/modules/physics/wigner.html#sympy.physics.wigner.gaunt
         W_sym = (-1)**m * gaunt(v, n, n_p, u, -m, m_p) # Eq (64) from de paper
         # Check if the object is an integer or 0. Else --> 64 digits of precision
         if isinstance(W_sym, int) or W_sym == 0:
@@ -137,7 +138,7 @@ class PSDestimation:
         return omega
     
     @staticmethod
-    def translation_matrix(el_s, az_s, k_array, r, N, V, L):
+    def translation_matrix(el_s, az_s, k_array, r, N, Nmin, V, L):
         """
         Fills the translation matrix with the corresponding terms. See Eq (47) from the paper.
     
@@ -147,6 +148,7 @@ class PSDestimation:
             k_array (numpy.ndarray): Wavenumber array. len(k_array) = Nfreq
             r (numpy.ndarray) Vector of array radius
             N (int): Maximun SH order
+            Nmin (int): Minimum SH order
             V (int): Maximum reverberation power order
             L (int): Number of sources
 
@@ -156,7 +158,7 @@ class PSDestimation:
             
         """
         # Matrix initialization
-        rows = (N + 1)**4
+        rows = utils.calculate_rows(Nmin, N) # If Nmin = 0 --> (N+1)^4
         columns = L + (V + 1)**2 + 1
         Nfreq = len(k_array)
         
@@ -167,19 +169,20 @@ class PSDestimation:
         omega = np.zeros((rows, Nfreq),  dtype=complex)
         psi = np.zeros((rows, (V+1)**2), dtype=complex)
         
-        i = 0
+        i = 0 # Computes values for n, m, n_p, m_p
         # n iteration
-        for n in range(N+1):
+        for n in range(Nmin, N+1):
             # m iteration
             for m in range(-n, n+1):
                 # n' iteration
-                for n_p in range(N+1):
+                for n_p in range(Nmin, N+1):
                     # m' iteration
                     for m_p in range(-n_p, n_p+1):
                         upsilon = PSDestimation.upsilon_term(n, m, n_p, m_p, el_s, az_s)
                         ups[i, :] = upsilon                                     
+                
+                        j = 0 # Computes values for v, u
                         # v iteration
-                        j = 0
                         for v in range(V+1):
                             # u iteration
                             for u in range(-v, v+1):
@@ -194,6 +197,7 @@ class PSDestimation:
                         i += 1
         
         # Filling the matrix
+        k = 0
         for k in range (Nfreq):
             # Final matrix (translation matrix)
             T_matrix[k, :, :] = np.concatenate((ups, psi, omega[:, k].reshape(-1, 1)), axis=1) # Reshape is used to concrete a one-column matrix
@@ -201,7 +205,7 @@ class PSDestimation:
         return T_matrix
     
     @staticmethod
-    def lambda_matrix(k_array, N, beta, alpha, timeFrames):
+    def lambda_matrix(k_array, N, Nmin, beta, alpha, timeFrames):
         """
         Calculates the expected value of LAMBDA. See Eq (58) from the paper.
         An exponentially weighted moving average algorithm is used (EWMA).
@@ -219,28 +223,31 @@ class PSDestimation:
         """
         
         Nfreq = len(k_array)
-        # Column matrix
-        lambda_matrix = np.zeros((Nfreq, (N+1)**4, timeFrames), dtype=complex)
+        rows = utils.calculate_rows(Nmin, N) # If Nmin = 0 --> (N+1)^4
 
+        lambda_matrix = np.zeros((Nfreq, rows, timeFrames), dtype=complex) # CHANGE TO NMIN
+
+
+        i = 0 # Index to fill the final matrix (until rows)
         
-        i = 0 # Index to fill the final matrix (until (N+1)^4)
-        j_ = 0 # Index to manage (select rows) alpha values because alpha contains (N + 1)^2 rows (all combinations of n and m)
-        for n in range(N+1):
+        j_ = 0 # Index to manage (select rows) alpha values because alpha contains all combinations of n and m
+        for n in range(Nmin, N+1):
             # m iteration
             for m in range(-n, n+1):
                 # n' iteration
-                j_p = 0 # Index to manage (select rows) alpha' values (n' m')
-                for n_p in range(N+1):
+                j_p = 0 # Index to manage (select rows) alpha' values (n' m').
+                for n_p in range(Nmin, N+1):
                     # m' iteration
                     for m_p in range(-n_p, n_p+1):
                         for k_index in range(Nfreq):
                             data = alpha[k_index, j_, :] * np.conj(alpha[k_index, j_p, :])
-                            lambda_matrix[k_index, i, :] = utils.ewma_tensor(beta, data)
+                            lambda_matrix[k_index, i, :] = utils.ewma(beta, data)
                         j_p += 1
                         i += 1
                 j_ += 1
         
         return lambda_matrix
+    
     
     
     @staticmethod
@@ -256,7 +263,7 @@ class PSDestimation:
         Returns: 
             numpy.ndarray: [Nfreq x (L + (V + 1)**2 + 1)]
         """
-        # Transpose lambda_matrix to match the dimensions for multiplication
+        # To match the dimensions for multiplication
         lambda_matrix = np.expand_dims(lambda_matrix, axis=-1)
     
         # Solve the system for each frequency

@@ -96,7 +96,6 @@ class SHutils:
         if M > n:
             return 0
         
-        # COMPROBAR los "+ 1"
         m_index = M
         a1 = ((2*n + 1) / (4 * np.pi))
         a2 = factorial(n - M) / factorial(n + M)
@@ -122,7 +121,7 @@ class SHutils:
         """
         (checked)
         Calculate complex spherical harmonics upto an order 
-        (first row --> n = 0, m = 0 ; last row --> n = order, m = order)
+        (first row --> n = 0, m = -n ; last row --> n = order, m = order)
         
     
         Parameters:
@@ -200,7 +199,28 @@ class SHutils:
         return n_arr
     
     @staticmethod
-    def sph_bn(n_arr, x_arr, is_rigid=False):
+    def ACNOrderModeArray(order):
+        
+        """
+        Get all SH orders and modes in an array according to ACN
+        NM = (order+1)^2 x 2
+        """
+        
+        nm_array = np.zeros(((order+1)**2, 2), dtype=int)
+        
+        ind = 1
+        for n in range(1, order + 1):
+            num_modes = 2 * n
+            nm_array[ind:ind + num_modes + 1, 0] = n
+            nm_array[ind:ind + num_modes + 1, 1] = np.arange(-n, n + 1)
+            
+            ind += num_modes + 1
+            
+        return nm_array
+    
+    
+    @staticmethod
+    def sph_bn(n_arr, x_arr, is_rigid=True):
         """
         Calculate the coefficients bn for spherical harmonics. Eq (11) from the paper.
     
@@ -305,7 +325,7 @@ class SHutils:
         # SH orders
         n_arr = SHutils.ACNOrderArray(N_true)
         # Beta
-        bn = SHutils.sph_bn(n_arr, kr, isRigid);
+        bn = SHutils.sph_bn(n_arr, kr, isRigid)
         
         if mode == 'inv':
             Y_mat = SHutils.complexSH(N_true, el, az) * bn
@@ -334,6 +354,14 @@ class SHutils:
                 Y_mat = Y_mat * weight
             
             alpha = Y_mat @ P
+            
+                        
+        if isinstance(kr, np.ndarray): # Checking if it is an array
+            if (max(np.ceil(kr)) + 1) ** 2 > len(az):
+                print('(N + 1)^2 > Q, spatial alising might occur.')
+        else:
+            if (np.ceil(kr) + 1) ** 2 > len(az):
+                print('(N + 1)^2 > Q, spatial alising might occur.')
 
     
         return alpha 

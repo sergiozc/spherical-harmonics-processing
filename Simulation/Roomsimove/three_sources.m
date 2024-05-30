@@ -10,38 +10,42 @@ close all;
 clc;
 
 addpath(genpath('stft_library'))
+addpath(genpath('SH_library'))
 
 %% Sources definition (fs in "room_sensor_config.txt too)
 
-% FIRST SOURCE
-%[s1,fs] = audioread('sources/scarface_alpacino.wav');
-freq1 = 440; fs = 16000; duration = 5; % Hz, samples/s, s
-s1 = sin_source_generation(freq1, duration, fs);
+fs = 16000; % 16kHz
+
+% FIRST SOURCE (voice)
+[s1,fs_voice] = audioread('sources/scarface_alpacino.wav'); % VOICE
+s1 = resample(s1, fs, fs_voice); % Resample to converto fs to 16kHz
 % Position (in meters)
-x1 = 3;
-y1 = 2.1;
-z1 = 1.65; %eg: another human height
+x1 = 4.9;
+y1 = 0.1;
+z1 = 1.65; %eg: human height
 
 
-% SECOND SOURCE
-%[s2,fs] = audioread('sources/every_man_De_Niro.wav');
-%s2 = s2(1:length(s1));  % Same length as source 1
-freq2 = 900; fs = 16000; duration = 5; % Hz, samples/s, s
-s2 = sin_source_generation(freq2, duration, fs);
+% SECOND SOURCE 
+%[s2,fs_voice] = audioread('sources/every_man_De_Niro.wav'); % VOICE
+%s2 = resample(s2, fs, fs_voice); % Resample to converto fs to 16kHz
+freq2 = 800; duration = 9; % Hz, samples/s, s % SIN
+s2 = sin_source_generation(freq2, duration, fs); % SIN
+s2 = s2(1:length(s1));
 % Position (in meters)
-x2 = 1;
-y2 = 3.5;
-z2 = 1.8; %eg: human height
+x2 = 0.1;
+y2 = 3.9;
+z2 = 2.5; %Located in a corner
 
-% THIRD SOURCE
-%[s3,fs] = audioread('sources/eastwood_lawyers.wav');
-%s3 = s3(1:length(s1)); % Same length as source 1
-freq3 = 2500; fs = 16000; duration = 5; % Hz, samples/s, s
-s3 = sin_source_generation(freq3, duration, fs);
+% THIRD SOURCE (sin)
+%[s3,fs_voice] = audioread('sources/eastwood_lawyers.wav'); % VOICE
+%s3 = resample(s3, fs, fs_voice); % Resample to converto fs to 16kHz
+freq3 = 2500; duration = 9; % Hz, samples/s, s % SIN
+s3 = sin_source_generation(freq3, duration, fs); % SIN
+s3 = s3(1:length(s1));
 % Position (in meters)
-x3 = 4;
-y3 = 1.5;
-z3 = 1.7; %eg: another human height
+x3 = 4.9;
+y3 = 3.9;
+z3 = 2.5; % Located in the corner
 
 %% Sources visualization
 % FREQUENCY DOMAIN
@@ -64,41 +68,15 @@ legend('Source 1', 'Source 2', 'Source 3');
 % SPATIAL VISUALIZATION
 % Room dimensions (same as room_sensor_config.txt)
 room_size = [5, 4, 2.6];
-% Microphones positions
-pos_mic = [
-    0.9894, 0.9903, 1.3395;
-    1.0018, 1.0200, 1.3369;
-    1.0147, 0.9808, 1.3344;
-    0.9730, 1.0048, 1.3318;
-    1.0254, 1.0162, 1.3293;
-    0.9916, 0.9687, 1.3267;
-    0.9842, 1.0305, 1.3242;
-    1.0338, 0.9877, 1.3216;
-    0.9654, 0.9857, 1.3191;
-    1.0164, 1.0350, 1.3165;
-    1.0119, 0.9622, 1.3140;
-    0.9650, 1.0203, 1.3115;
-    1.0401, 1.0088, 1.3089;
-    0.9761, 0.9660, 1.3064;
-    0.9946, 1.0415, 1.3038;
-    1.0321, 0.9729, 1.3013;
-    0.9581, 0.9983, 1.2987;
-    1.0296, 1.0295, 1.2962;
-    0.9981, 0.9585, 1.2936;
-    0.9737, 1.0315, 1.2911;
-    1.0400, 0.9946, 1.2885;
-    0.9675, 0.9774, 1.2860;
-    1.0085, 1.0377, 1.2835;
-    1.0186, 0.9675, 1.2809;
-    0.9657, 1.0109, 1.2784;
-    1.0312, 1.0144, 1.2758;
-    0.9875, 0.9701, 1.2733;
-    0.9898, 1.0283, 1.2707;
-    1.0243, 0.9872, 1.2682;
-    0.9766, 0.9938, 1.2656;
-    1.0108, 1.0169, 1.2631;
-    1.0024, 0.9858, 1.2605;
-];
+
+% Extract mic position from eigenmike HOM
+hom = SHTools.getEigenmike();
+cart_eigen = hom.cart; % Cartesians
+% Center of the sphere
+center = [1, 1, 1];
+% Shift the geometry 
+pos_mic = cart_eigen + center;
+
 % Separating microphones positions
 x_mic = pos_mic(:, 1);
 y_mic = pos_mic(:, 2);
@@ -136,21 +114,20 @@ H1 = roomsimove_single('room_sensor_config.txt',[x1; y1; z1]);
 H2 = roomsimove_single('room_sensor_config.txt',[x2; y2; z2]);
 H3 = roomsimove_single('room_sensor_config.txt',[x3; y3; z3]);
 
-% Received signal at the qth microphone
+% Received signal at qth microphone
 y = fftfilt(H1,s1) + fftfilt(H2,s2) + fftfilt(H3,s3);
 
 %% Sound pressure
-winlen = uint32(256);
-% winlen = 256; % It means 256 ms
+winlen = uint32(128);
+% window(s) = window(samples) / Fs
 hop = 0.5;  % Overlap. Default is 50%, or 0.5
-nfft = 256; % Default is same length as winlen
+nfft = 128; % Default is same length as winlen
 
 % Fourier transform for each window
 stftObj = STFTClass(fs, winlen, hop, nfft);
 
-% Perform the STFT on y
 T = 500; % Number of time frames
-T_vector = linspace(1,500, 500);
+T_vector = linspace(1,500, 500); % To represent time
 
 % Sound pressure as a tensor
 Nfreq = stftObj.pos_freq; % Number of frequencies
@@ -173,7 +150,9 @@ colorbar_handle = colorbar;
 xlabel('Timeframes');
 ylabel('Frequency (Hz)');
 title('PSD of sound pressure from mic #1');
-ylabel(colorbar_handle, 'dB/Hz');
+ylabel(colorbar_handle, 'PSD(dB/Hz)');
+colormap('hot');
+caxis([-70,0]);
 %% Saving data
 
 % Saving sensors positions (cartesian)
@@ -221,11 +200,10 @@ title('Recorded signals (mic #1, #2 and #32)');
 legend('Mic 1', 'Mic 2', 'Mic 32');
 
 %% Sources' PSD representation
-% SECTROGRAM FOR SOURCES
-winlen = uint32(256);
-% winlen = 256; % It means 256 ms
+% SPECTROGRAM FOR SOURCES
+winlen = uint32(128); % winlen(samples) = fs * winlen(s)
 hop = 0.5;  % Overlap. Default is 50%, or 0.5
-nfft = 256; % Default is same length as winlen
+nfft = 128; % Default is same length as winlen
 % Fourier transform for each window
 stftObj = STFTClass(fs, winlen, hop, nfft);
 
@@ -238,7 +216,9 @@ colorbar_handle = colorbar;
 xlabel('Timeframes');
 ylabel('Frequency (Hz)');
 title('Source 1 PSD');
-ylabel(colorbar_handle, 'dB/Hz');
+ylabel(colorbar_handle, 'PSD(dB/Hz)');
+colormap('hot');
+caxis([-70, 0]);
 
 s2_STFT = stftObj.stft(s2, T);
 s2_psd = 10*log10(abs(s2_STFT));
@@ -249,7 +229,9 @@ colorbar_handle = colorbar;
 xlabel('Timeframes');
 ylabel('Frequency (Hz)');
 title('Source 2 PSD');
-ylabel(colorbar_handle, 'dB/Hz');
+ylabel(colorbar_handle, 'PSD(dB/Hz)');
+colormap('hot');
+caxis([-70, 0]);
 
 s3_STFT = stftObj.stft(s3, T);
 s3_psd = 10*log10(abs(s3_STFT));
@@ -260,4 +242,6 @@ colorbar_handle = colorbar;
 xlabel('Timeframes');
 ylabel('Frequency');
 title('Source 3 PSD');
-ylabel(colorbar_handle, 'dB/Hz');
+ylabel(colorbar_handle, 'PSD(dB/Hz)');
+colormap('hot');
+caxis([-70, 0]);
