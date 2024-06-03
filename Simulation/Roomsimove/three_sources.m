@@ -126,8 +126,8 @@ nfft = 128; % Default is same length as winlen
 % Fourier transform for each window
 stftObj = STFTClass(fs, winlen, hop, nfft);
 
-T = 500; % Number of time frames
-T_vector = linspace(1,500, 500); % To represent time
+T = 1300; % Number of time frames
+T_vector = linspace(1,T,T); % To represent time
 
 % Sound pressure as a tensor
 Nfreq = stftObj.pos_freq; % Number of frequencies

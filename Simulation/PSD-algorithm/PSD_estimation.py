@@ -225,7 +225,7 @@ class PSDestimation:
         Nfreq = len(k_array)
         rows = utils.calculate_rows(Nmin, N) # If Nmin = 0 --> (N+1)^4
 
-        lambda_matrix = np.zeros((Nfreq, rows, timeFrames), dtype=complex) # CHANGE TO NMIN
+        lambda_matrix = np.zeros((Nfreq, rows, timeFrames), dtype=complex)
 
 
         i = 0 # Index to fill the final matrix (until rows)
@@ -268,6 +268,7 @@ class PSDestimation:
     
         # Solve the system for each frequency
         theta = np.linalg.pinv(T_matrix) @ lambda_matrix
+        
         
         # Delete last dimension 
         theta = theta[:, :, 0]

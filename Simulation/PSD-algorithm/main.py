@@ -105,7 +105,7 @@ mode = 'no-inv'
 # Weights to the corresponding microphones
 #(used if mode ~= inv)
 #weight = np.random.rand(32) + 0.01
-#weight = np.array([0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3, 0.5, 0.3, 0.3, 0.3, 0.5, 0.3, 0.3, 0.3, 0.5, 0.6, 0.7, 0.7, 0.7, 0.6, 0.7, 0.7, 0.7])
+#weights = np.array([0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3, 0.5, 0.3, 0.3, 0.3, 0.5, 0.3, 0.3, 0.3, 0.5, 0.6, 0.7, 0.7, 0.7, 0.6, 0.7, 0.7, 0.7])
 weights = np.ones(Q)
 # Rigid array or not
 isRigid = True
@@ -143,7 +143,7 @@ N = order # order
 T_matrix = PSDestimation.translation_matrix(el_s, az_s, k_array, r, N, Nmin, V, L)
 
 # Lambda matrix (tensor 3D)
-beta = 0.3 # Smoothing factor
+beta = 0.5 # Smoothing factor
 lambda_matrix_t  = PSDestimation.lambda_matrix(k_array, N, Nmin, beta, alpha_cut, timeFrames)
 
 # %%
