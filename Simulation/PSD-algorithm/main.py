@@ -12,8 +12,7 @@ from utils import utils
 import numpy as np
 from scipy.io import loadmat
 import matplotlib.pyplot as plt
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+
 # %%
 # PARAMETER DEFINITION
 
@@ -21,13 +20,13 @@ c = 343 # Propagation speed
 r = 0.042 # Assuming same radius
 room_size = np.array([5, 4, 2.6]) # Room dimensions
 
-# Microphones' posictions
+# Microphones' positions
 pos_mic = loadmat('data/pos_mic.mat')['pos_mic'] # Microphones positions (x,y,z)
 Q = pos_mic.shape[0]  # Number of microphones (selecting rows' length) 
 el = np.zeros(Q) # Mic elevation
 az = np.zeros(Q) # Mic azimut
 r_pos_mic = np.zeros(Q) # Distance vector for microphones
-for i, (x, y, z) in enumerate(pos_mic): # Switch to el and az (from cartesian)''
+for i, (x, y, z) in enumerate(pos_mic): # Switch to el and az (from cartesian)
     el[i], az[i], r_pos_mic[i] = utils.cart2sph(x, y, z)
 
 # Sources' positions
@@ -52,6 +51,7 @@ timeFrames = P.shape[2] # Number of time frames
 
 order = 4 # Spherical harmonic order (it defines the complexity of the spherical function).
 # Defined in the "experimental setup" of the paper. Highest order to calculate.
+
 Nmin = 2 # Minimun order
 
 # V <= int(np.floor(np.sqrt((order + 1)**2 - L - 1) - 1)) # Order of the power of a reverberation sound field.
@@ -65,20 +65,20 @@ cut_Nmin = Nmin**2
 
 # %% Microphones and sources spatial visualization (check)
 
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.scatter(pos_mic[:, 0], pos_mic[:, 1], pos_mic[:, 2], c='b', marker='o', label='Microphones')
-ax.scatter(pos_sources[0, 0], pos_sources[0, 1], pos_sources[0, 2], c='r', marker='o', label='Source 1')
-ax.scatter(pos_sources[1, 0], pos_sources[1, 1], pos_sources[1, 2], c='r', marker='o', label='Source 2')
-ax.scatter(pos_sources[2, 0], pos_sources[2, 1], pos_sources[2, 2], c='r', marker='o', label='Source 3')
-ax.set_xlabel('X (m)')
-ax.set_ylabel('Y (m)')
-ax.set_zlabel('Z (m)')
-ax.set_xlim([0, room_size[0]])
-ax.set_ylim([0, room_size[1]])
-ax.set_zlim([0, room_size[2]])
-ax.set_title('Microphones and sources positions')
-plt.show()
+# fig = plt.figure()
+# ax = fig.add_subplot(111, projection='3d')
+# ax.scatter(pos_mic[:, 0], pos_mic[:, 1], pos_mic[:, 2], c='b', marker='o', label='Microphones')
+# ax.scatter(pos_sources[0, 0], pos_sources[0, 1], pos_sources[0, 2], c='r', marker='o', label='Source 1')
+# ax.scatter(pos_sources[1, 0], pos_sources[1, 1], pos_sources[1, 2], c='r', marker='o', label='Source 2')
+# ax.scatter(pos_sources[2, 0], pos_sources[2, 1], pos_sources[2, 2], c='r', marker='o', label='Source 3')
+# ax.set_xlabel('X (m)')
+# ax.set_ylabel('Y (m)')
+# ax.set_zlabel('Z (m)')
+# ax.set_xlim([0, room_size[0]])
+# ax.set_ylim([0, room_size[1]])
+# ax.set_zlim([0, room_size[2]])
+# ax.set_title('Microphones and sources positions')
+# plt.show()
 
 
 #%%
@@ -90,7 +90,8 @@ plt.show()
 #y4 = SHutils.complexSHPerMode(3, 2, el_s, az_s) # [Q x 1] output vector
 
 # Complex spherical harmonics upto order = order. For all elevations and azimuths.
-#y3 = SHutils.complexSH(order, el, az)
+#y3 = SHutils.complexSH(order, el_s, az_s)
+#y3_cut = y3[cut_Nmin:, :]
 
 # Get all SH orders in an array according to ACN (Ambisonics Channel Numbering)
 #n_arr = SHutils.ACNOrderArray(order)
@@ -104,7 +105,6 @@ plt.show()
 mode = 'no-inv'
 # Weights to the corresponding microphones
 #(used if mode ~= inv)
-#weight = np.random.rand(32) + 0.01
 #weights = np.array([0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3, 0.5, 0.3, 0.3, 0.3, 0.5, 0.3, 0.3, 0.3, 0.5, 0.6, 0.7, 0.7, 0.7, 0.6, 0.7, 0.7, 0.7])
 weights = np.ones(Q)
 # Rigid array or not
@@ -126,7 +126,7 @@ for k_index, k in enumerate(k_array):
 # Calculated alpha from Nmin
 alpha_cut = alpha[:, cut_Nmin:, :]
 #%% 
-# UPSILON, PSI, OMEGA calculation (3rd step of the algorithm)
+# UPSILON, PSI, OMEGA calculation (3rd step of the algorithm). JUST FOR CHECK.
 
 #freq = 882.861 # Frequency (unit test)
 #k = SHutils.getK(freq, c)
@@ -194,6 +194,16 @@ plt.colorbar(label='PSD(dB/Hz)')
 plt.xlabel('Time frames')
 plt.ylabel('Frequency (Hz)')
 plt.title('Estimated PSD. Source 3')
+plt.show()
+
+# Heatmap for the sound pressure of the mic #1
+pressure = np.abs(P[:, 1, :])
+plt.figure()
+plt.imshow(10*np.log10(pressure), aspect='auto', cmap='hot', origin='lower',extent=[0, timeFrames-1, 0, int(freq_array[-1])], vmin=-70, vmax=0)
+plt.colorbar(label='PSD(dB/Hz)')
+plt.xlabel('Time frames')
+plt.ylabel('Frequency (Hz)')
+plt.title('Sound pressure mic #1')
 plt.show()
 
 

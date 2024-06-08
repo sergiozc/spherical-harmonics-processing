@@ -20,14 +20,13 @@ class utils:
             x: X coordenate
             y: Y coordenate
             z: Z coordenate
-            center: center of the sphere (x0, y0, z0)
 
         Returns:
             float: elevation (rad)
             float: azimuthal (rad)
         """
         
-        # Calcular la magnitud del vector posición (r)
+        # Position vector
         r = np.sqrt(x**2 + y**2 + z**2)
         # Calcular la elevación (theta)
         el = np.arccos(z / r)
@@ -35,7 +34,7 @@ class utils:
         az = np.arctan2(y, x)
         
         # Make sure [0, 2pi]
-       # az[az < 0] += 2 * np.pi
+        # az[az < 0] += 2 * np.pi
         
         
         return el, az, r

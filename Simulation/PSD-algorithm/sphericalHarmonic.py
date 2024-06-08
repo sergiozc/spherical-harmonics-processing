@@ -291,7 +291,7 @@ class SHutils:
     def alphaOmni(P, order, k, r, el, az, isRigid, mode, compensateBesselZero, applyRegularization, weight):
         """
         (checked. The result is not exactly the same due to so many decimals)
-        Calculate complex spherical harmonics upto an order.
+        It estimates the sound field coefficients.
         (first row --> n = 0, m = 0 ; last row --> n = order, m = order)
         
         Dependencies:
