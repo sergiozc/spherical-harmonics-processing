@@ -9,11 +9,14 @@ SPHERICAL HARMONIC DECOMPOSITION
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.special import lpmv, factorial
 from math import pi
 from bessel_hankel import BHfunctions
 import math
 from scipy.linalg import pinv
+from utils import utils
+from scipy.special import sph_harm
 
 class SHutils:
     
@@ -176,6 +179,79 @@ class SHutils:
                 
     
         return y
+    
+    @staticmethod 
+    def realSH(order, el, az):
+        """
+        (checked)
+        Calculate real spherical harmonics upto an order 
+        (first row --> n = 0, m = -n ; last row --> n = order, m = order)
+        
+    
+        Parameters:
+            order (int): Highest SH order to calculate
+            el (numpy.ndarray): Vector of elevation angles in radians (Qx1).
+            az (numpy.ndarray): Vector of azimuth angles in radians (Qx1).
+    
+        Returns:
+            numpy.ndarray: Real spherical harmonics values (order+1)^2 x Q
+        """
+        
+        y = np.zeros(((order+1)**2, len(az)))
+        
+        i = 0
+        for n in range(order+1):
+            for m in range(-n, n + 1):
+                y[i, :] = SHutils.realSHPerMode(n, m, el, az)
+                i = i+1
+                
+        return y
+    
+    def harmonic_plot(order, n, m, el, az):
+        
+        """
+        Visualization of all spherical harmonics
+
+        Parameters:
+            order (int): Maximum order of the spherical harmonics.
+            n (int): Order of the spherical harmonic.
+            m (int): Mode of the spherical harmonic.
+            el (numpy.ndarray): Vector of elevation angles in radians.
+            az (numpy.ndarray): Vector of azimuth angles in radians.
+        """
+        
+        Y_nm = sph_harm(m, n, az, el)
+        
+        # Harmonic magnitude
+        r = np.abs(Y_nm)
+        
+        # Cartesian coordenates
+        x, y, z = utils.sph2cart(r, el, az)
+        
+        fig = plt.figure(figsize=(14, 7))
+        
+        # Real part
+        ax1 = fig.add_subplot(121, projection='3d')
+        real_values = np.real(Y_nm)
+        surf_real = ax1.plot_surface(x, y, z, facecolors=plt.cm.seismic(real_values), rstride=1, cstride=1, linewidth=0, antialiased=False)
+        ax1.set_title(f'Real part (n={n}, m={m})')
+        ax1.set_xlabel('X')
+        ax1.set_ylabel('Y')
+        ax1.set_zlabel('Z')
+        fig.colorbar(surf_real, ax=ax1, shrink=0.5, aspect=5)
+        
+        # Imaginary part
+        ax2 = fig.add_subplot(122, projection='3d')
+        imag_values = np.imag(Y_nm)
+        surf_imag = ax2.plot_surface(x, y, z, facecolors=plt.cm.seismic(imag_values), rstride=1, cstride=1, linewidth=0, antialiased=False)
+        ax2.set_title(f'Imaginary part (n={n}, m={m})')
+        ax2.set_xlabel('X')
+        ax2.set_ylabel('Y')
+        ax2.set_zlabel('Z')
+        fig.colorbar(surf_imag, ax=ax2, shrink=0.5, aspect=5)
+        
+        plt.tight_layout()
+        plt.show()
     
     
     @staticmethod 

@@ -39,6 +39,24 @@ class utils:
         
         return el, az, r
     
+    @staticmethod
+    def sph2cart(r, theta, phi):
+        """
+        Converts spherical to cartesian coordenates.
+
+        Parameters:
+            r: position vector
+            theta: elevation
+            phi: azimut
+
+        Returns:
+                cartesian coordenates (x, y, z)
+        """
+        x = r * np.sin(theta) * np.cos(phi)
+        y = r * np.sin(theta) * np.sin(phi)
+        z = r * np.cos(theta)
+        return x, y, z
+    
     
     @staticmethod
     def calculate_rows(Nmin, N):

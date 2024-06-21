@@ -85,17 +85,28 @@ cut_Nmin = Nmin**2
 # SH calculations (just to test if necessary)
 
 # Real spherical harmonics for n = 3 and m = 2. For all elevations and azimuths.
-#y2 = SHutils.realSHPerMode(3, 2, el, az)  # [Q x 1] output vector
+y2 = SHutils.realSHPerMode(2, -2, el, az)  # [Q x 1] output vector
 # Complex spherical harmonics for n = 3, m = 2 for all elevations and azimuths.
-#y4 = SHutils.complexSHPerMode(3, 2, el_s, az_s) # [Q x 1] output vector
+y4 = SHutils.complexSHPerMode(2, -2, el, az) # [Q x 1] output vector
 
 # Complex spherical harmonics upto order = order. For all elevations and azimuths.
-#y3 = SHutils.complexSH(order, el_s, az_s)
+y3 = SHutils.complexSH(order, el_s, az_s)
 #y3_cut = y3[cut_Nmin:, :]
 
 # Get all SH orders in an array according to ACN (Ambisonics Channel Numbering)
 #n_arr = SHutils.ACNOrderArray(order)
 
+# %% SH visualization
+
+# # Creating the grid
+# theta = np.linspace(0, np.pi, 100)  # Elevation
+# phi = np.linspace(0, 2 * np.pi, 100)  # Azimut
+# theta, phi = np.meshgrid(theta, phi)
+
+# # Visualization per n and m
+# for n_h in range(Nmin, order+1):
+#     for m_h in range(-n_h, n_h + 1):
+#         SHutils.harmonic_plot(order, n_h, m_h, theta, phi)
 
 # %%
 # ALPHA (sound field coefficients) for all modes and time frames (2nd step of the algorithm)
