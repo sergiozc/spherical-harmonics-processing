@@ -41,6 +41,7 @@ class utils:
         
         return el, az, r
     
+    
     @staticmethod
     def sph2cart(r, theta, phi):
         """
@@ -54,10 +55,25 @@ class utils:
         Returns:
                 cartesian coordenates (x, y, z)
         """
-        x = r * np.sin(theta) * np.cos(phi)
-        y = r * np.sin(theta) * np.sin(phi)
-        z = r * np.cos(theta)
+        x = r * np.cos(theta) * np.cos(phi)
+        y = r * np.cos(theta) * np.sin(phi)
+        z = r * np.sin(theta)
         return x, y, z
+    
+    
+    @staticmethod
+    def el2inc(el):
+        """
+        Converts elevation angle to inclination
+        
+        Parámetros:
+        el(numpy.ndarray): Elevation in rad
+        
+        Returns:
+            numpy.ndarray; Inclination in rad
+        """
+        inc = np.pi / 2 - el
+        return inc
     
     
     @staticmethod

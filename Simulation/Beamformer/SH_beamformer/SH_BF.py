@@ -12,7 +12,7 @@ from scipy.linalg import solve
 
 class sphericalBF:
 
-    def SH_MVDR_weights(N_harm, dn, el_s, az_s, cov_matrix):
+    def SH_MVDR_weights(N_harm, dn, cov_matrix):
         
         """
         Calculates MVDR weights within the SH domain
@@ -20,8 +20,6 @@ class sphericalBF:
         Parameters:
             N_harm(int): Highest number of harmonics
             dn(numpy.ndarray): Steering vector of the beamformer
-            el_s(numpy.ndarray): Vector of elevation angles in radians
-            az_s(numpy.ndarray):  Vector of azimuth angles in radians
             cov_matrix(numpy.ndarray): Covariance matrix
             
         Returns:
@@ -29,7 +27,7 @@ class sphericalBF:
         """
         
         # Number of beams (sources)
-        nBeams = len(el_s)
+        nBeams = len(dn[1,:])
         # MVDR weights matrix
         w = np.zeros((N_harm, nBeams))
                   

@@ -100,7 +100,7 @@ class SH_visualization:
         azimuth_grid = [0]
         elevation_grid = [0]
         
-        # AZIMUTH_GRID Y ELEVATION_GRID DEBEN SER DE 2521 !!
+        
         for i in range(1, Ntheta-1):
             azimuth_grid.extend(azimuth)
             elevation_grid.extend([elevation[i]] * Nphi)
@@ -195,13 +195,15 @@ class SH_visualization:
     
         # Change to rad
         azi = np.deg2rad(np.arange(0, 360 + aziRes, aziRes))
-        elev = np.deg2rad(np.arange(0, 180 + elRes, elRes))# Change in case of elevation (not inclination)
-        
+        elev = np.deg2rad(np.arange(0, 180 + elRes, elRes)) # Change in case of elevation (not inclination)
+        #elev = np.deg2rad(np.arange(-90, 90 + elRes, elRes))
         # Building the grid
         Az, El = np.meshgrid(azi, elev)
     
-        # Spherical to cartesian coordenates
-        Dx, Dy, Dz = utils.sph2cart(Fgrid, El, Az)
+        
+        Dx = np.cos(Az) * np.sin(El) * np.abs(np.squeeze(Fgrid))
+        Dy = np.sin(Az) * np.sin(El) * np.abs(np.squeeze(Fgrid))
+        Dz = np.cos(El) * np.abs(np.squeeze(Fgrid))
         
         # Real positive annd negative parts
         Dp_x = Dx * (Fgrid >= 0)
