@@ -3,7 +3,6 @@
 Created on Fri Jun 21 12:44:42 2024
 
 @author: sergiozc
-@references: https://github.com/polarch/Spherical-Array-Processing
 
 Methods to visualize spherical harmonics and functions
 """
