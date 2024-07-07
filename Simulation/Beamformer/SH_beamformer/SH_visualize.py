@@ -61,6 +61,25 @@ class SH_visualization:
         
         plt.tight_layout()
         plt.show()
+        
+    
+    @staticmethod
+    def bn_plot(c, Nmax, Fmax, r, isRigid=True):
+        n_arr = np.arange(Nmax)
+        step = 10
+        f = np.arange(5, Fmax, step)
+        kr = utils.getK(f, c)
+        bn = 20*np.log10(SHutils.sph_bn(n_arr, kr, isRigid))
+        
+        plt.figure()
+        
+        for n in n_arr:
+            plt.plot(np.real(bn[:, n]), label='SH order = ' + str(n))
+        
+        plt.legend()
+        plt.xlabel('kr')
+        plt.ylabel(r'$b_n$ (dB)')
+        
 
     @staticmethod
     def grid2dirs(aziRes, elRes, ZEROED_OR_CENTERED=1, POLAR_ELEV=1):
@@ -204,13 +223,17 @@ class SH_visualization:
         Dy = np.sin(Az) * np.sin(El) * np.abs(np.squeeze(Fgrid))
         Dz = np.cos(El) * np.abs(np.squeeze(Fgrid))
         
-        # Real positive annd negative parts
+        # # Real positive annd negative parts
         Dp_x = Dx * (Fgrid >= 0)
         Dp_y = Dy * (Fgrid >= 0)
         Dp_z = Dz * (Fgrid >= 0)
         Dn_x = Dx * (Fgrid < 0)
         Dn_y = Dy * (Fgrid < 0)
         Dn_z = Dz * (Fgrid < 0)
+        
+        # Convert to dB scale
+        Fgrid_dB = 20 * np.log10(np.abs(np.squeeze(Fgrid)))
+        Fgrid_dB = np.clip(Fgrid_dB, -40, 0)  # Limitar el rango de dB para mejor visualización
     
         # 3D axis
         maxF = np.max(np.abs(Fgrid))
@@ -218,8 +241,13 @@ class SH_visualization:
         ax.plot([0, 0], [0, 1.1 * maxF], [0, 0], color='g')
         ax.plot([0, 0], [0, 0], [0, 1.1 * maxF], color='b')
     
-        ax.plot_surface(Dp_x, Dp_y, Dp_z, color='b', alpha=0.7)
+        
+        # Plot surface with colormap for directivity in dB
+        #colors = plt.cm.viridis(Fgrid_dB)
+
+        #ax.plot_surface(Dx, Dy, Dz, facecolors=colors, alpha=0.7)
         ax.plot_surface(Dn_x, Dn_y, Dn_z, color='r', alpha=0.7)
+        ax.plot_surface(Dp_x, Dp_y, Dp_z, color='b', alpha=0.7)
     
         ax.set_xlabel('x')
         ax.set_ylabel('y')
@@ -227,4 +255,5 @@ class SH_visualization:
         ax.set_box_aspect([1, 1, 1])  # Equal aspect ratio
     
         ax.grid(True)
+        #plt.colorbar(plt.cm.ScalarMappable(cmap='viridis'), ax=ax, label='Directivity (dB)')
         plt.show()

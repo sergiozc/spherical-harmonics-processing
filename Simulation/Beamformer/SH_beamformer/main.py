@@ -7,6 +7,7 @@ Created on Wed Jun 12 18:23:50 2024
     - [1] N. Epain and C. T. Jin, "Spherical Harmonic Signal Covariance and Sound Field Diffuseness"
     - [2] B. Rafaely, Y. Peled, M. Agmon, D. Khaykin, and E. Fisher, "Spherical Microphone Array Beamforming"
     - [3] https://github.com/polarch/Spherical-Array-Processing
+    - [4] J. Meyer and G. W. Elko, "Handling Spatial Aliasing in Spherical Array Applications"
 
 """
 
@@ -23,12 +24,31 @@ plt.close('all')
 
 SH_order = 3 # Spherical harmonic order (it determines the complexity of the function)
 # The higher is the order, the more directive is the beampattern
+# Nevertheless, the higuer is the order, the  more spatial aliasing might we have
 
 Nmin = 0 # Lowest order (default 0)
 N_harm = (SH_order + 1) ** 2 # Highest number of harmonics (not valid if Nmin != 0)
 
-L = 3 # Number of sources
-az_s, el_s = sphericalBF.sph_sources(L) # Sources DOA
+L = 4 # Number of sources
+az_s, el_s = sphericalBF.sph_sources(L, 'random') # Sources DOA
+
+
+# Generar ángulos de elevación aleatorios entre 0 y π/2 radianes
+el_s = np.random.uniform(0, np.pi / 2, L)
+
+# Generar ángulos azimutales aleatorios entre 0 y 2π radianes
+az_s = np.random.uniform(0, 2 * np.pi, L)
+
+
+# %% Check the spatial aliasing with b_n.
+# See Fig.2 from [4]
+# f = 2000
+# c = 342
+# r = 0.042
+# kr = utils.getK(f, c) * r
+# b_n = 20*np.log10(SHutils.sph_bn(3, kr))
+
+
 
 
 #%% Beamformer
@@ -39,6 +59,11 @@ Y_s = SHutils.realSH(SH_order, utils.el2inc(el_s), az_s) # d_n (steering vector)
 
 # Power of the sources
 power_s = np.eye(L) # We assume all sources have the same power
+
+potencias = np.array([1, 3, 5, 1])
+# Crea la matriz diagonal con las potencias
+power_s = np.diag(potencias)
+
 # Power of the noise (diffuse noise)
 power_noise = 1
 

@@ -13,6 +13,24 @@ import numpy as np
 class utils:
     
     @staticmethod 
+    def getK(freq, c):
+        
+        """
+        Calculate wave number.
+
+        Parameters:
+            freq (float or numpy.array): Frequency.
+            c (float, optional): Speed of sound. Defaults to 343 m/s.
+
+        Returns:
+            float or nump: Wave number.
+        """
+        
+        k = 2 * np.pi * freq / c
+        
+        return k
+    
+    @staticmethod 
     def cart2sph(x, y, z):
         
         """

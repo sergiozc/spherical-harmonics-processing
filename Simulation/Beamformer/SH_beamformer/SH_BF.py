@@ -13,25 +13,30 @@ from scipy.linalg import solve
 class sphericalBF:
     
     @staticmethod
-    def sph_sources(Ns):
+    def sph_sources(Ns, distribution = 'uniform'):
         
         """
         Generates sources positions within a sphere
         
         Parameters:
             Ns (int): Number of desired sources
+            distribution (string): Uniform distribution or random
             
         Returns:
             tuple (az_s, el_s): Azimuth and elevation of each source (rad)
         """
         
-        index = np.arange(0, Ns, dtype=float) + 0.5
+        if distribution == 'uniform':
+            index = np.arange(0, Ns, dtype=float) + 0.5
+            
+            phi = np.arccos(1 - 2*index/Ns)
+            theta = np.pi * (1 + 5**0.5) * index
         
-        phi = np.arccos(1 - 2*index/Ns)
-        theta = np.pi * (1 + 5**0.5) * index
-    
-        az_s = theta % (2 * np.pi)  # Azimuth
-        el_s = phi - np.pi / 2      # Elevation
+            az_s = theta % (2 * np.pi)  # Azimuth
+            el_s = phi - np.pi / 2      # Elevation
+        else:
+            el_s = np.random.uniform(0, np.pi / 2, Ns)
+            az_s = np.random.uniform(0, 2 * np.pi, Ns)
     
         return az_s, el_s
     
