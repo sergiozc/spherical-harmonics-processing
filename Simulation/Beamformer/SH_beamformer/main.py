@@ -33,13 +33,6 @@ L = 4 # Number of sources
 az_s, el_s = sphericalBF.sph_sources(L, 'random') # Sources DOA
 
 
-# Generar ángulos de elevación aleatorios entre 0 y π/2 radianes
-el_s = np.random.uniform(0, np.pi / 2, L)
-
-# Generar ángulos azimutales aleatorios entre 0 y 2π radianes
-az_s = np.random.uniform(0, 2 * np.pi, L)
-
-
 # %% Check the spatial aliasing with b_n.
 # See Fig.2 from [4]
 # f = 2000
@@ -127,21 +120,21 @@ power_noise = 1
 
 # FIRST MATRIX
 L1 = 1 # Number of sources
-az_s1, el_s1 = sphericalBF.sph_sources(L1) # Sources DOA
+az_s1, el_s1 = sphericalBF.sph_sources(L1, 'uniform') # Sources DOA
 Y_s1 = SHutils.realSH(order, utils.el2inc(el_s1), az_s1) #SH
 power_s1 = np.eye(L1) 
 cov_matrix1 = sphericalBF.SH_COV(N_harm, Y_s1, power_s1, power_noise)
 
 # SECOND MATRIX
 L2 = 5 # Number of sources
-az_s2, el_s2 = sphericalBF.sph_sources(L2) # Sources DOA
+az_s2, el_s2 = sphericalBF.sph_sources(L2, 'uniform') # Sources DOA
 Y_s2 = SHutils.realSH(order, utils.el2inc(el_s2), az_s2) #SH
 power_s2 = np.eye(L2) 
 cov_matrix2 = sphericalBF.SH_COV(N_harm, Y_s2, power_s2, power_noise)
 
 # THIRD MATRIX
 L3 = 20 # Number of sources
-az_s3, el_s3 = sphericalBF.sph_sources(L3) # Sources DOA
+az_s3, el_s3 = sphericalBF.sph_sources(L3, 'uniform') # Sources DOA
 Y_s3 = SHutils.realSH(order, utils.el2inc(el_s3), az_s3) #SH
 power_s3 = np.eye(L3) 
 cov_matrix3 = sphericalBF.SH_COV(N_harm, Y_s3, power_s3, power_noise)
@@ -182,7 +175,7 @@ dif_mis_p = np.zeros((order_max, L_max))
 for order_p in range(1, order_max + 1):
     N_harm_p = (order_p + 1) ** 2
     for L_p in range(1, L_max + 1):
-        az_s_p, el_s_p = sphericalBF.sph_sources(L_p)  # Sources DOA
+        az_s_p, el_s_p = sphericalBF.sph_sources(L_p, 'uniform')  # Sources DOA
         Y_s_p = SHutils.realSH(order_p, utils.el2inc(el_s_p), az_s_p)  # SH
         power_s_p = np.eye(L_p) 
         cov_matrix_p = sphericalBF.SH_COV(N_harm_p, Y_s_p, power_s_p, power_noise)

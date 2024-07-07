@@ -66,7 +66,7 @@ xlabel('Time (s)');
 
 %% Wave type definition
 % Flat or spherical can be chosen
-[d_n, tn] = wave_type(c, d, N, phi, 'spherical');
+[d_n, tn] = wave_type(c, d, N, phi, 'plane');
 
 
 %% Beamforming implementation
@@ -116,7 +116,7 @@ xc_out_sum = sum(xc_out, 2);
 xc_out_sum = xc_out_sum(1:end-Lfft/2);
 % Normalization and listening
 xout_norm = xc_out_sum/max(abs(xc_out_sum));
-soundsc(real(xout_norm),Fs);
+%soundsc(real(xout_norm),Fs);
 
 % Saving the signal
 fout=strcat('./results/DAS_result','.wav');
