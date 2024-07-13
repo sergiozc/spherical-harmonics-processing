@@ -4,11 +4,13 @@ Created on Fri Jun 21 13:07:04 2024
 
 @author: sergiozc
 
-Spherical harmonics beamformer methods
+Spherical harmonics beamformer methods.
+
 """
 
 import numpy as np
 from scipy.linalg import solve
+from scipy.special import factorial, eval_legendre
 
 class sphericalBF:
     
@@ -64,6 +66,7 @@ class sphericalBF:
         
         return cov_matrix
     
+    @staticmethod
     def diffuse_mismatch(SH_order, L, cov_matrix):
         
         """
@@ -117,4 +120,97 @@ class sphericalBF:
         
         return w
     
+    @staticmethod
+    def cheby_coeffs(n):
+        
+        """
+        Calculates the polynomial coefficients of a Chebyshev polinomial of order n
+        
+        Parameters:
+            n (int): Order of the polynomial
+            
+        Returns:
+            np.ndarray: Polynomial coefficients
+        """
+        
+        if n == 0:
+            return np.array([1])
+        
+        coeffs = []
+        for k in range(n // 2 + 1):
+            coef_k = (n / 2) * (-1)**k * factorial(n - k - 1) / (factorial(k) * factorial(n - 2 * k)) * 2**(n - 2 * k)
+            coeffs.append(coef_k)
+        
+        T = np.zeros(n + 1)
+        if n % 2 == 0:
+            T[::2] = coeffs[::-1]
+        else:
+            T[1::2] = coeffs[::-1]
+        
+        return T
+    
+    @staticmethod
+    def legendre_coeffs(n):
+        """
+        Calculates the polynomial coefficients of a Legendre polynomial of order n
+        
+        Parameters:
+            n (int): Order of the polynomial
+            
+        Returns:
+            np.ndarray: Polynomial coefficients
+        """
+        
+        coeffs = np.zeros(n + 1)
+        for k in range(n // 2 + 1):
+            coeff_k = ((-1)**k * factorial(2 * n - 2 * k) / (2**n * factorial(k) * factorial(n - k) * factorial(n - 2 * k)))
+            coeffs[2 * k] = coeff_k
+        
+        return coeffs[::-1]
+    
+    @staticmethod
+    def SH_cheby_weights(N, paramType, arrayParam):
+        """
+        Calculates the spherical weights for a Dolph-Chebyshev beamformer in the SH domain.
+        @reference: A. Koretz and B. Rafaely, “Dolph–chebyshev beampattern design for spherical arrays,” IEEE
+        transactions on Signal processing, vol. 57, no. 6, pp. 2417–2420, 2009
+        
+        Parameters:
+            n (int): Order of the polynomial
+            
+        Returns:
+            np.ndarray: Polynomial coefficients
+        """
+        
+        M = 2 * N
+    
+        if paramType == 'sidelobe':
+            R = 1 / arrayParam
+            x0 = np.cosh((1 / M) * np.arccosh(R))
+        elif paramType == 'mainlobe':
+            a0 = arrayParam / 2
+            x0 = np.cos(np.pi / (2 * M)) / np.cos(a0 / 2)
+            R = np.cosh(M * np.arccosh(x0))
+    
+        t_2N = sphericalBF.cheby_coeffs(2 * N)
+    
+        P_N = np.zeros((N + 1, N + 1))
+        for n in range(N + 1):
+            P_N[:n + 1, n] = sphericalBF.legendre_coeffs(n)
+    
+        d_n = np.zeros(N + 1)
+        for n in range(N + 1):
+            temp = 0
+            for i in range(n + 1):
+                for j in range(N + 1):
+                    for m in range(j + 1):
+                        temp += (1 - (-1)**(m + i + 1)) / (m + i + 1) * \
+                                factorial(j) / (factorial(m) * factorial(j - m)) * \
+                                (1 / 2**j) * t_2N[2*j] * P_N[i, n] * x0**(2 * j)
+            d_n[n] = (2 * np.pi / R) * temp
+    
+        norm = np.sum(d_n * np.sqrt(2 * np.arange(N + 1) + 1))
+        d_n = np.sqrt(4 * np.pi) * d_n / norm
+    
+        return d_n
     

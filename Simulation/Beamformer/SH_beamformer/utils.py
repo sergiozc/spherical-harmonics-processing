@@ -152,5 +152,17 @@ class utils:
             ewma_values[..., tau] = beta * ewma_values[..., tau - 1] + (1 - beta) * data[..., tau]
 
         return ewma_values
+    
+    @staticmethod
+    def dB2linear(dB_value):
+        """
+        Converts from dB to linear.
         
+        Parameters:
+        dB_value (float): Value in decibels.
+        
+        Returns:
+        float: Linear value
+        """
+        return 10**(dB_value / 10.0)
         

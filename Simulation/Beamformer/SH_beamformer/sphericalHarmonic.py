@@ -205,9 +205,42 @@ class SHutils:
         return y
     
     @staticmethod
-    def inverse_SH(f_SH, order, el, az):
+    def signal2SH(signal, order, el, az):
+        """
+        Implements the operation of the Spherical Harmonics Transformation.
+        Commonly used to transform recorded signals. 
+        
+        Parameters:
+            signal (numpy.ndarray): Function to be converted
+            order (int): Maximum order of the spherical harmonics.
+            el (numpy.ndarray): Vector of elevation (mics) angles in radians.
+            az (numpy.ndarray): Vector of azimuth (mics) angles in radians.
+            
+        Returns:
+            SH_signals (numpy.ndarray): Signals in the SH domain
+        """
+        
+        Y_N = SHutils.realSH(order, el, az)
+        SH_signal = np.dot(signal, Y_N)
+        
+        return SH_signal
     
-        "(CHECKED)"
+    @staticmethod
+    def inverse_SH(f_SH, order, el, az):
+        """
+        (checked)
+        Implements the inverse operation of the Spherical Harmonics Transformation
+        
+        Parameters:
+            f_SH (numpy.ndarray): Function in SH domain
+            order (int): Maximum order of the spherical harmonics.
+            el (numpy.ndarray): Vector of elevation angles in radians.
+            az (numpy.ndarray): Vector of azimuth angles in radians.
+            
+        Returns:
+            f (numpy.ndarray): Linear function (out of the SH domain)
+            
+        """
         
         Y_N = SHutils.realSH(order, el, az) # Spherical harmonics in same directions
         f = Y_N.T @ f_SH # Inverse function. F(theta, phi) within the sphere
@@ -223,7 +256,7 @@ class SHutils:
             order (int): Maximum order of the spherical harmonics.
 
         Returns:
-            n_array (numnpy.ndarray): Int array containing all SH orders according to ACN.
+            n_arr (numnpy.ndarray): Int array containing all SH orders according to ACN.
         """
         
         n_arr = np.zeros((order + 1) ** 2, dtype=int)

@@ -257,3 +257,25 @@ class SH_visualization:
         ax.grid(True)
         #plt.colorbar(plt.cm.ScalarMappable(cmap='viridis'), ax=ax, label='Directivity (dB)')
         plt.show()
+        
+        
+    @staticmethod
+    def plotPattern(weights, ax = None):
+        
+        if ax is None:
+            fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+            
+        theta = np.radians(np.arange(0, 361, 1))
+        order = len(weights) - 1
+        Y_nm = SHutils.realSH(order, theta, np.zeros_like(theta)).T
+        
+        Y_n = np.zeros((theta.size, order + 1))
+        for n in range(order + 1):
+            Y_n[:, n] = Y_nm[:, n**2 + n]
+            
+        f = np.dot(Y_n, weights)
+    
+        ax.plot(theta[f >= 0], np.abs(f[f >= 0]), 'b')
+        ax.plot(theta[f < 0], np.abs(f[f < 0]), 'r')
+    
+        plt.show()
