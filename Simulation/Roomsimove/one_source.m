@@ -101,7 +101,7 @@ P = zeros(Nfreq, Nmic, T);
 y_noise = zeros(size(y));
 for n = 1:Nmic
     % Adding white noise
-    y_noise(:,n) = y(:,n) + 0.02 * randn(size(y(:,n)));
+    y_noise(:,n) = y(:,n) + 0.1 * randn(size(y(:,n)));
     % STFT in each microphone signal
     P(:, n, :) = stftObj.stft(y_noise(:, n), T);
 end
@@ -125,16 +125,22 @@ caxis([-70,0]);
 
 % Saving sensors positions (cartesian)
 save('../PSD-algorithm/data/pos_mic.mat', 'pos_mic');
+save('../../Experiment/SH_MVDR/input_data/pos_mic.mat', 'pos_mic');
 
 % Saving sources positions (cartesian)
 pos_sources = [x1, y1, z1];
 save('../PSD-algorithm/data/pos_sources.mat', 'pos_sources');
+save('../../Experiment/SH_MVDR/input_data/pos_sources.mat', 'pos_sources');
 
 % Saving frequency array (to create a tensor in python)
 save('../PSD-algorithm/data/freq.mat', 'freq_array');
+save('../../Experiment/SH_MVDR/input_data/freq.mat', 'freq_array');
 
 % Saving sound pressure tensor
 save('../PSD-algorithm/data/sound_pressure.mat', 'P');
+
+% Saving the recorded signal
+save('../../Experiment/SH_MVDR/input_data/y.mat', 'y_noise');
 
 
 %% Recorded signals

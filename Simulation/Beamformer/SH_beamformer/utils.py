@@ -48,9 +48,9 @@ class utils:
         
         # Position vector
         r = np.sqrt(x**2 + y**2 + z**2)
-        # Calcular la elevación (theta)
-        el = np.arccos(z / r)
-        # Calcular el azimut (phi)
+        # Calcular la elevación (phi)
+        el = np.arcsin(z / r)
+        # Calcular el azimut (theta)
         az = np.arctan2(y, x)
         
         # Make sure [0, 2pi]
@@ -63,21 +63,20 @@ class utils:
     @staticmethod
     def sph2cart(r, theta, phi):
         """
-        Converts spherical to cartesian coordenates.
-
-        Parameters:
-            r: position vector
-            theta: elevation
-            phi: azimut
-
-        Returns:
-                cartesian coordenates (x, y, z)
-        """
-        x = r * np.cos(theta) * np.cos(phi)
-        y = r * np.cos(theta) * np.sin(phi)
-        z = r * np.sin(theta)
-        return x, y, z
+        Converts spherical to cartesian coordinates.
     
+        Parameters:
+            r: position vector (radius)
+            theta: azimuthal angle (in radians)
+            phi: elevation angle (in radians)
+    
+        Returns:
+            cartesian coordinates (x, y, z)
+        """
+        x = r * np.cos(phi) * np.cos(theta)
+        y = r * np.cos(phi) * np.sin(theta)
+        z = r * np.sin(phi)
+        return x, y, z
     
     @staticmethod
     def el2inc(el):

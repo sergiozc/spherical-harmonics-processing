@@ -3,12 +3,32 @@
 Created on Sun Apr 14 18:28:47 2024
 
 @author: sergiozc
+
+Some useful functions
 """
 
 import numpy as np
 
 
 class utils:
+    
+    @staticmethod 
+    def getK(freq, c):
+        
+        """
+        Calculate wave number.
+
+        Parameters:
+            freq (float or numpy.array): Frequency.
+            c (float, optional): Speed of sound. Defaults to 343 m/s.
+
+        Returns:
+            float or nump: Wave number.
+        """
+        
+        k = 2 * np.pi * freq / c
+        
+        return k
     
     @staticmethod 
     def cart2sph(x, y, z):
@@ -28,9 +48,9 @@ class utils:
         
         # Position vector
         r = np.sqrt(x**2 + y**2 + z**2)
-        # Calcular la elevación (theta)
-        el = np.arccos(z / r)
-        # Calcular el azimut (phi)
+        # Calcular la elevación (phi)
+        el = np.arcsin(z / r)
+        # Calcular el azimut (theta)
         az = np.arctan2(y, x)
         
         # Make sure [0, 2pi]
@@ -39,23 +59,38 @@ class utils:
         
         return el, az, r
     
+    
     @staticmethod
     def sph2cart(r, theta, phi):
         """
-        Converts spherical to cartesian coordenates.
-
+        Converts spherical to cartesian coordinates.
+    
         Parameters:
-            r: position vector
-            theta: elevation
-            phi: azimut
-
+            r: position vector (radius)
+            theta: azimuthal angle (in radians)
+            phi: elevation angle (in radians)
+    
         Returns:
-                cartesian coordenates (x, y, z)
+            cartesian coordinates (x, y, z)
         """
-        x = r * np.sin(theta) * np.cos(phi)
-        y = r * np.sin(theta) * np.sin(phi)
-        z = r * np.cos(theta)
+        x = r * np.cos(phi) * np.cos(theta)
+        y = r * np.cos(phi) * np.sin(theta)
+        z = r * np.sin(phi)
         return x, y, z
+    
+    @staticmethod
+    def el2inc(el):
+        """
+        Converts elevation angle to inclination
+        
+        Parámetros:
+        el(numpy.ndarray): Elevation in rad
+        
+        Returns:
+            numpy.ndarray; Inclination in rad
+        """
+        inc = np.pi / 2 - el
+        return inc
     
     
     @staticmethod
@@ -116,5 +151,17 @@ class utils:
             ewma_values[..., tau] = beta * ewma_values[..., tau - 1] + (1 - beta) * data[..., tau]
 
         return ewma_values
+    
+    @staticmethod
+    def dB2linear(dB_value):
+        """
+        Converts from dB to linear.
         
+        Parameters:
+        dB_value (float): Value in decibels.
+        
+        Returns:
+        float: Linear value
+        """
+        return 10**(dB_value / 10.0)
         

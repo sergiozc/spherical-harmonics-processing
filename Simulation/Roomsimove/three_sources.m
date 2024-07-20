@@ -157,21 +157,21 @@ caxis([-70,0]);
 
 % Saving sensors positions (cartesian)
 %save('../PSD-algorithm/data/pos_mic.mat', 'pos_mic');
-save('../Beamformer/SH_beamformer/input_data/pos_mic.mat', 'pos_mic');
+save('../../Experiment/SH_MVDR/input_data/pos_mic.mat', 'pos_mic');
 
 % Saving sources positions (cartesian)
 pos_sources = [x1, y1, z1; x2, y2, z2; x3, y3, z3];
 %save('../PSD-algorithm/data/pos_sources.mat', 'pos_sources');
-save('../Beamformer/SH_beamformer/input_data/pos_sources.mat', 'pos_sources');
+save('../../Experiment/SH_MVDR/input_data/pos_sources.mat', 'pos_sources');
 
 % Saving frequency array (to create a tensor in python)
-%save('../PSD-algorithm/data/freq.mat', 'freq_array');
+save('../../Experiment/SH_MVDR/input_data/freq.mat', 'freq_array');
 
 % Saving sound pressure tensor
-%save('../PSD-algorithm/data/sound_pressure.mat', 'P');
+save('../../Experiment/SH_MVDR/input_data/sound_pressure.mat', 'P');
 
 % Saving the recorded signal
-save('../Beamformer/SH_beamformer/input_data/y.mat', 'y');
+save('../../Experiment/SH_MVDR/input_data/y.mat', 'y');
 
 
 %% Recorded signals
