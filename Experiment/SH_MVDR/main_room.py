@@ -24,7 +24,7 @@ plt.close('all')
 c = 343 # Propagation speed
 r = 0.042 # Assuming same radius
 room_size = np.array([5, 4, 2.6]) # Room dimensions
-SH_order = 3 # Spherical harmonic order (it determines the complexity of the function)
+SH_order = 5 # Spherical harmonic order (it determines the complexity of the function)
 # The higher is the order, the more directive is the beampattern
 # Nevertheless, the higuer is the order, the  more spatial aliasing might we have
 Nmin = 0 # Lowest order (default 0)
@@ -76,19 +76,19 @@ timeFrames = P.shape[2] # Number of time frames
 
 fs = 16000 # Sample rate
 Q = 32 # Number of microphones
-
+Nfft = 512  # FFT size for STFT
 
 # Recorded signal from mics
 y = loadmat('input_data/y.mat')['y_noise']
-# Signal normalization
+# Signal normalization (one mic)
 y_before = y[:,1]/ np.max(np.abs(y[:,1]))
 # Convert to 16-bit integer in order to save as a WAV
 y_wav = np.int16(y_before * 32767)
 # Saving the wav file
-wavfile.write('./results/previous_signal.wav', fs, y_wav)
+wavfile.write('./results/signal_room_before.wav', fs, y_wav)
 
 # Original source (simulation)
-_, source_signal = wavfile.read('input_data/source.wav')
+_, source_signal = wavfile.read('input_data/source_room.wav')
 
 
 
@@ -130,15 +130,11 @@ plt.show()
 # Weights calculation
 wnm = sphericalBF.SH_MVDR_weights(N_harm, Y_s, cov_matrix)
 
-
 pnm = SHutils.transform_SH(y, el, az, SH_order)
 #pnm_ = SHutils.signal2SH(y, SH_order, el, az)
 
-
 # SH Signal after Beamforming
 BF_signal = wnm[:,0].T @ pnm
-
-
 
 # %% Check results
 # Signal normalization
@@ -168,7 +164,7 @@ print('SNR(after BF) = ' + str(SNR_after) + ' dB')
 # Convert to 16-bit integer in order to save as a WAV
 BF_signal_norm = np.int16(BF_signal_norm * 32767)
 # Saving the wav file
-wavfile.write('./results/source1.wav', fs, BF_signal_norm)
+wavfile.write('./results/signal_room_after.wav', fs, BF_signal_norm)
 
 
 # %% MVDR BF 3D visualization

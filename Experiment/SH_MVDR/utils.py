@@ -9,6 +9,8 @@ Some useful functions
 
 import numpy as np
 from scipy.fft import fft
+import soundfile as sf
+import os
 
 
 class utils:
@@ -92,6 +94,36 @@ class utils:
         """
         inc = np.pi / 2 - el
         return inc
+    
+    @staticmethod
+    def load_wav_signals(directory, num_channels=19):
+        """
+        Load multiple WAV files from a directory into a matrix with each column representing a channel.
+    
+        Parameters:
+            directory (str): The path to the directory containing the WAV files.
+            num_channels (int): The number of channels (default is 19).
+    
+        Returns:
+            np.ndarray: A 2D array where each column is a signal from a different channel.
+            int: The sample rate of the WAV files.
+        """
+        signals = []
+        sample_rate = None
+        
+        for i in range(num_channels):
+            file_path = os.path.join(directory, f'signal_{i+1}.wav')
+            signal, sr = sf.read(file_path)
+            if sample_rate is None:
+                sample_rate = sr
+            elif sample_rate != sr:
+                raise ValueError(f"Sample rate mismatch: {sample_rate} != {sr} for file {file_path}")
+            signals.append(signal)
+        
+        # Stack signals into a 2D array with shape (num_samples, num_channels)
+        channels = np.column_stack(signals)
+        
+        return channels, sample_rate
     
     
     @staticmethod
