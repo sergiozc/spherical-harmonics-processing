@@ -189,3 +189,4 @@ title('Source 1 PSD');
 ylabel(colorbar_handle, 'PSD(dB/Hz)');
 colormap('hot');
 caxis([-70, 0]);
+yaxis([0, 6100]);

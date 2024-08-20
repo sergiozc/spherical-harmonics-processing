@@ -15,6 +15,8 @@ from SH_visualize import SH_visualization
 from SH_BF import sphericalBF
 from sphericalHarmonic import SHutils
 from scipy.io import wavfile
+from pesq import pesq
+from scipy.signal import resample
 
 plt.close('all')
 
@@ -22,9 +24,9 @@ plt.close('all')
 # PARAMETER DEFINITION
 
 c = 343 # Propagation speed
-r = 0.042 # Assuming same radius
+r = 0.049 # Assuming same radius
 room_size = np.array([5, 4, 2.6]) # Room dimensions
-SH_order = 5 # Spherical harmonic order (it determines the complexity of the function)
+SH_order = 6 # Spherical harmonic order (it determines the complexity of the function)
 # The higher is the order, the more directive is the beampattern
 # Nevertheless, the higuer is the order, the  more spatial aliasing might we have
 Nmin = 0 # Lowest order (default 0)
@@ -75,7 +77,7 @@ P = loadmat('input_data/sound_pressure.mat')['P'] # Sound pressure
 timeFrames = P.shape[2] # Number of time frames
 
 fs = 16000 # Sample rate
-Q = 32 # Number of microphones
+Q = 19 # Number of microphones
 Nfft = 512  # FFT size for STFT
 
 # Recorded signal from mics
@@ -159,6 +161,20 @@ noise_after = np.var(BF_signal_norm[120000:121000]) # Noise samples (without voi
 power_after = np.var(BF_signal_norm[2000:120000]) # Voice samples
 SNR_after = utils.calculates_SNR(power_after, noise_after)
 print('SNR(after BF) = ' + str(SNR_after) + ' dB')
+
+# SIGNAL-TO-DISTORSION-RATIO
+sdr = utils.calculates_SDR(y_before, BF_signal_norm)
+print('SDR = ' + str(sdr) + ' dB')
+
+# PESQ
+# Resampling to 16 kHz
+fs_res = 16000
+num_samples_ref = int(len(y_before) * fs_res / fs)
+num_samples_proc = int(len(BF_signal_norm) * fs_res / fs)
+before_resampled = resample(y_before, num_samples_ref)
+after_resampled = resample(BF_signal_norm, num_samples_proc)
+PESQ = pesq(fs_res, before_resampled, after_resampled, 'wb')
+print('PESQ = ' + str(PESQ))
 
 # SAVE AS A WAV FILE
 # Convert to 16-bit integer in order to save as a WAV

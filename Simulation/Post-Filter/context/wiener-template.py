@@ -2,14 +2,13 @@
 """
 Created on Tue Mar 19 19:29:14 2024
 
-@author: Usuario
+@author: sergiozc
 """
 
-# PRACTICA 4: CANCELADOR DE ECO ACUSTICO
+# CANCELADOR DE ECO ACUSTICO
 
 '''
-    SERGIO ZAPATA CAPARROS
-    ANTONIO SIMON MARTIN
+    SERGIO ZAPATA CAPARRÓS
     
 '''
     

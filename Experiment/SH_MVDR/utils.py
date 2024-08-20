@@ -238,3 +238,32 @@ class utils:
             numpy.ndarray: total power of the corresponding signal
         """
         return 10 * np.log10(power_signal / power_noise)
+    
+    @staticmethod
+    def calculates_SDR(x, xest):
+        """
+        Calculates signal-to-noise ratio
+
+        Parameters:
+            x (numpy.ndarray): original signal
+            xest (numpy.ndarray): processed signal
+
+        Returns:
+            float64: Signal-to-Distorsion-Ratio
+        """
+    
+        # Check-in
+        Ex = np.sum(x*x)
+        Exest = np.sum(xest*xest)
+        if ((Ex < 1e-3) or (Exest < 1e-3)):
+            raise NotImplementedError("Error in SDR: null power signals")
+    
+        # Compute SDR
+        scalefactor = np.sum(xest*x)/Ex
+        target = scalefactor * x
+        residual = target - xest
+        EtargetdB = 10*np.log10(np.sum(target*target))
+        EresidualdB = 10*np.log10(np.sum(residual*residual)+1e-12)
+        SDR = EtargetdB - EresidualdB
+    
+        return SDR

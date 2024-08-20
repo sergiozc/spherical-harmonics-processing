@@ -1,0 +1,4 @@
+The source is a voice. The person is talking static, in front of the array.
+19 signals has been recorded (one from each microphone).
+
+Microphones' positions can be found at 'mic_distribution.JPG' (same directory).

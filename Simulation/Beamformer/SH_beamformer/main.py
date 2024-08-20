@@ -22,7 +22,7 @@ plt.close('all')
 
 # %% Parameter definition
 
-SH_order = 3 # Spherical harmonic order (it determines the complexity of the function)
+SH_order = 4 # Spherical harmonic order (it determines the complexity of the function)
 # The higher is the order, the more directive is the beampattern
 # Nevertheless, the higuer is the order, the  more spatial aliasing might we have
 
@@ -135,15 +135,15 @@ for i in range(L):
 # SPHERICAL HARMONICS
 # ¡WARNING!: Many images might be generated
 #-----------------------------------------------------------------------------
-# # Creating the grid
-# theta = np.linspace(0, np.pi, 100)  # Elevation
-# phi = np.linspace(0, 2 * np.pi, 100)  # Azimut
-# theta, phi = np.meshgrid(theta, phi)
+# Creating the grid
+theta = np.linspace(0, np.pi, 100)  # Elevation
+phi = np.linspace(0, 2 * np.pi, 100)  # Azimut
+theta, phi = np.meshgrid(theta, phi)
 
-# # Visualization per n and m
-# for n_h in range(Nmin, SH_order+1):
-#       for m_h in range(-n_h, n_h + 1):
-#           SH_visualization.harmonic_plot(SH_order, n_h, m_h, theta, phi)
+# Visualization per n and m
+for n_h in range(Nmin, SH_order+1):
+      for m_h in range(-n_h, n_h + 1):
+          SH_visualization.harmonic_plot(SH_order, n_h, m_h, theta, phi)
 
 
 #-----------------------------------------------------------------------------

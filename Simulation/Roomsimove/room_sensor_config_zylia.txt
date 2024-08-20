@@ -1,0 +1,91 @@
+%Sampling frequency (in hertz)
+Fs	16000
+
+% Room size (in meters)
+room_size	5	4	2.6
+
+% Frequency-dependent absorption for surfaces x=0, x=Lx, y=0, y=Ly, z=0, z=Lz
+F_abs	125	250	500	1000	2000	4000	8000
+Ax1	0.671   0.671	0.671	0.671	0.671	0.671	0.671
+Ax2	0.671   0.671	0.671	0.671	0.671	0.671	0.671
+Ay1	0.671	0.671	0.671	0.671	0.671	0.671	0.671
+Ay2	0.671	0.671	0.671	0.671	0.671	0.671	0.671
+Az1	0.671	0.671	0.671	0.671	0.671	0.671	0.671
+Az2	0.671	0.671	0.671	0.671	0.671	0.671	0.671
+
+% Sensor positions (in meters)
+sp1     1.0000  1.0000  1.0490
+sp2     1.0327  1.0001  1.0365
+sp3     0.9836  1.0283  1.0365
+sp4     0.9837  0.9717  1.0365
+sp5     1.0063  0.9542  1.0163
+sp6     1.0366  0.9718  1.0163
+sp7     1.0365  1.0284  1.0163
+sp8     1.0062  1.0458  1.0163
+sp9     0.9572  1.0174  1.0163
+sp10    0.9573  0.9824  1.0163
+sp11    0.9635  0.9716  0.9837
+sp12    0.9938  0.9542  0.9837
+sp13    1.0428  0.9826  0.9837
+sp14    1.0427  1.0176  0.9837
+sp15    0.9937  1.0458  0.9837
+sp16    0.9634  1.0282  0.9837
+sp17    0.9673  0.9999  0.9635
+sp18    1.0164  0.9717  0.9635
+sp19    1.0163  1.0283  0.9635
+% Sensor orientations (azimuth, elevation and roll offset in degrees, positive for slew left, nose up or right wing down)
+so1  0	0	0
+so2	 0	0	0
+so3	 0  0   0
+so4	 0	0	0
+so5	 0	0	0
+so6	 0  0   0
+so7	 0	0	0
+so8	 0	0	0
+so9	 0  0   0
+so10     0	0	0
+so11     0	0	0
+so12     0  0   0
+so13	 0	0	0
+so14	 0	0	0
+so15	 0  0   0
+so16	 0	0	0
+so17	 0	0	0
+so18	 0  0   0
+so19	 0	0	0
+
+
+% Sensor direction-dependent impulse responses (e.g. gains or HRTFs)
+sd1	 'omnidirectional'
+sd2	 'omnidirectional'
+sd3	 'omnidirectional'
+sd4	 'omnidirectional'
+sd5	 'omnidirectional'
+sd6	 'omnidirectional'
+sd7	 'omnidirectional'
+sd8	 'omnidirectional'
+sd9	 'omnidirectional'
+sd10	 'omnidirectional'
+sd11	 'omnidirectional'
+sd12	 'omnidirectional'
+sd13	 'omnidirectional'
+sd14	 'omnidirectional'
+sd15	 'omnidirectional'
+sd16	 'omnidirectional'
+sd17	 'omnidirectional'
+sd18	 'omnidirectional'
+sd19	 'omnidirectional'
+sd20	 'omnidirectional'
+sd21     'omnidirectional'
+sd22	 'omnidirectional'
+sd23	 'omnidirectional'
+sd24	 'omnidirectional'
+sd25	 'omnidirectional'
+sd26	 'omnidirectional'
+sd27     'omnidirectional'
+sd28	 'omnidirectional'
+sd29	 'omnidirectional'
+sd30	 'omnidirectional'
+sd31	 'omnidirectional'
+sd32	 'omnidirectional'
+

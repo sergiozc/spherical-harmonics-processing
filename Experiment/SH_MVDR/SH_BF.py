@@ -213,3 +213,66 @@ class sphericalBF:
         d_n = np.sqrt(4 * np.pi) * d_n / norm
     
         return d_n
+    
+    @staticmethod
+    def MUSIC_doa(R_x, pos_mic):
+        """
+        MUSIC DOA Estimation Function
+    
+        Estimates the direction of arrival (DOA) of sound sources using the MUSIC (MUltiple SIgnal Classification) algorithm.
+    
+        Parameters:
+            R_x (numpy.ndarray): Covariance matrix of shape (Nmic, Nmic).
+            pos_mic (numpy.ndarray): Array of microphone positions (Nmic, 3).
+    
+        Returns:
+            estimated_azimuth (float): Estimated azimuth angle (rad).
+            estimated_elevation (float): Estimated elevation angle (rad).
+        """
+        
+        # Parameters
+        c = 343  # Speed of sound in m/s
+    
+        # Define search grid for angles
+        azimuths = np.deg2rad(np.arange(-180, 181, 1))
+        elevations = np.deg2rad(np.arange(-90, 91, 1))
+        num_azimuths = len(azimuths)
+        num_elevations = len(elevations)
+        P_music = np.zeros((num_azimuths, num_elevations))
+    
+        # Eigen decomposition
+        eigenvalues, eigenvectors = np.linalg.eig(R_x)
+        eigenvalues_sorted_idx = np.argsort(eigenvalues)[::-1]
+        eigenvectors_sorted = eigenvectors[:, eigenvalues_sorted_idx]
+    
+        # Number of sources (assuming a single source)
+        num_sources = 1
+        noise_subspace = eigenvectors_sorted[:, num_sources:]
+    
+        # Search over the angle grid
+        for az_i in range(num_azimuths):
+            for el_i in range(num_elevations):
+                # Convert angles to radians
+                az_rad = azimuths[az_i]
+                el_rad = elevations[el_i]
+                
+                # Calculate steering vector for the given angles
+                steering_vector = np.exp(1j * 2 * np.pi * np.dot(pos_mic, 
+                                   [np.cos(el_rad)*np.cos(az_rad), 
+                                    np.cos(el_rad)*np.sin(az_rad), 
+                                    np.sin(el_rad)]) / c)
+                
+                # Compute the MUSIC metric
+                noise_subspace_matrix = noise_subspace @ noise_subspace.T.conj()
+                P_music[az_i, el_i] = 1 / np.abs(np.conj(steering_vector).T @ noise_subspace_matrix @ steering_vector)
+    
+        # Find the maximum value in the MUSIC spectrum
+        max_idx = np.argmax(P_music)
+        max_az_idx, max_el_idx = np.unravel_index(max_idx, P_music.shape)
+        
+        # Get the estimated angles
+        estimated_azimuth = azimuths[max_az_idx]
+        estimated_elevation = elevations[max_el_idx]
+    
+        return estimated_azimuth, estimated_elevation
+    
