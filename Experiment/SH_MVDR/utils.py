@@ -260,6 +260,7 @@ class utils:
     
         # Compute SDR
         scalefactor = np.sum(xest*x)/Ex
+        refactor = 7
         target = scalefactor * x
         residual = target - xest
         EtargetdB = 10*np.log10(np.sum(target*target))
